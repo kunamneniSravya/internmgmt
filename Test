@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.Date;
 import java.util.Arrays;
@@ -28,9 +29,9 @@ public class AttendanceDaoImplTest {
         MockitoAnnotations.openMocks(this);
 
         attendance = new Attendance();
-        attendance.setAttendanceId(1L);
-        attendance.setUserId(10L);
-        attendance.setBatchCode(101L);
+        attendance.setAttendanceId(1L);  // FIXED
+        attendance.setUserId(1L);        // FIXED
+        attendance.setBatchCode(1L);     // FIXED
         attendance.setDate(Date.valueOf("2025-01-01"));
         attendance.setPresent(true);
     }
@@ -40,6 +41,7 @@ public class AttendanceDaoImplTest {
     void testSave() {
         when(jdbcTemplate.update(anyString(), any(), any(), any(), any()))
                 .thenReturn(1);
+
         when(jdbcTemplate.queryForObject(eq("SELECT LAST_INSERT_ID()"), eq(Long.class)))
                 .thenReturn(1L);
 
@@ -47,55 +49,77 @@ public class AttendanceDaoImplTest {
 
         assertNotNull(saved);
         assertEquals(1L, saved.getAttendanceId());
+        assertEquals(1L, saved.getUserId());
     }
 
     // --------------- FIND BY USER + DATE ----------------
     @Test
     void testFindByUserIdAndDate_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L), any()))
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L), eq(attendance.getDate())))
                 .thenReturn(Arrays.asList(attendance));
 
-        Attendance result = attendanceDao.findByUserIdAndDate(10L, attendance.getDate());
+        Attendance result = attendanceDao.findByUserIdAndDate(1L, attendance.getDate());
+
         assertNotNull(result);
-        assertEquals(10L, result.getUserId());
+        assertEquals(1L, result.getUserId());
     }
 
     @Test
     void testFindByUserIdAndDate_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L), any()))
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L), eq(attendance.getDate())))
                 .thenReturn(Arrays.asList());
 
-        Attendance result = attendanceDao.findByUserIdAndDate(10L, attendance.getDate());
+        Attendance result = attendanceDao.findByUserIdAndDate(1L, attendance.getDate());
+
         assertNull(result);
     }
 
     // ---------------- FIND BY USER ID ----------------
     @Test
-    void testFindByUserId() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
+    void testFindByUserId_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
                 .thenReturn(Arrays.asList(attendance, attendance));
 
-        List<Attendance> list = attendanceDao.findByUserId(10L);
+        List<Attendance> list = attendanceDao.findByUserId(1L);
 
         assertEquals(2, list.size());
     }
 
+    @Test
+    void testFindByUserId_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Arrays.asList());
+
+        List<Attendance> list = attendanceDao.findByUserId(1L);
+
+        assertTrue(list.isEmpty());
+    }
+
     // ---------------- FIND BY BATCH CODE ----------------
     @Test
-    void testFindByBatchCode() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(101L)))
+    void testFindByBatchCode_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
                 .thenReturn(Arrays.asList(attendance));
 
-        List<Attendance> list = attendanceDao.findByBatchCode(101L);
+        List<Attendance> list = attendanceDao.findByBatchCode(1L);
 
         assertEquals(1, list.size());
-        assertEquals(101L, list.get(0).getBatchCode());
+        assertEquals(1L, list.get(0).getBatchCode());
+    }
+
+    @Test
+    void testFindByBatchCode_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Arrays.asList());
+
+        List<Attendance> list = attendanceDao.findByBatchCode(1L);
+
+        assertTrue(list.isEmpty());
     }
 
     // ---------------- UPDATE ----------------
     @Test
     void testUpdate() {
-
         when(jdbcTemplate.update(anyString(), any(), any()))
                 .thenReturn(1);
 
@@ -105,7 +129,6 @@ public class AttendanceDaoImplTest {
     // ---------------- DELETE ----------------
     @Test
     void testDelete() {
-
         when(jdbcTemplate.update(anyString(), eq(1L)))
                 .thenReturn(1);
 
