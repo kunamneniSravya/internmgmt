@@ -1,0 +1,114 @@
+package com.finalproject.internMgmtSystem.repository;
+
+import com.finalproject.internMgmtSystem.model.Attendance;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.sql.Date;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+public class AttendanceDaoImplTest {
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @InjectMocks
+    private AttendanceDaoImpl attendanceDao;
+
+    private Attendance attendance;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        attendance = new Attendance();
+        attendance.setAttendanceId(1L);
+        attendance.setUserId(10L);
+        attendance.setBatchCode(101L);
+        attendance.setDate(Date.valueOf("2025-01-01"));
+        attendance.setPresent(true);
+    }
+
+    // ---------------- SAVE ----------------
+    @Test
+    void testSave() {
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any()))
+                .thenReturn(1);
+        when(jdbcTemplate.queryForObject(eq("SELECT LAST_INSERT_ID()"), eq(Long.class)))
+                .thenReturn(1L);
+
+        Attendance saved = attendanceDao.save(attendance);
+
+        assertNotNull(saved);
+        assertEquals(1L, saved.getAttendanceId());
+    }
+
+    // --------------- FIND BY USER + DATE ----------------
+    @Test
+    void testFindByUserIdAndDate_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L), any()))
+                .thenReturn(Arrays.asList(attendance));
+
+        Attendance result = attendanceDao.findByUserIdAndDate(10L, attendance.getDate());
+        assertNotNull(result);
+        assertEquals(10L, result.getUserId());
+    }
+
+    @Test
+    void testFindByUserIdAndDate_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L), any()))
+                .thenReturn(Arrays.asList());
+
+        Attendance result = attendanceDao.findByUserIdAndDate(10L, attendance.getDate());
+        assertNull(result);
+    }
+
+    // ---------------- FIND BY USER ID ----------------
+    @Test
+    void testFindByUserId() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
+                .thenReturn(Arrays.asList(attendance, attendance));
+
+        List<Attendance> list = attendanceDao.findByUserId(10L);
+
+        assertEquals(2, list.size());
+    }
+
+    // ---------------- FIND BY BATCH CODE ----------------
+    @Test
+    void testFindByBatchCode() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(101L)))
+                .thenReturn(Arrays.asList(attendance));
+
+        List<Attendance> list = attendanceDao.findByBatchCode(101L);
+
+        assertEquals(1, list.size());
+        assertEquals(101L, list.get(0).getBatchCode());
+    }
+
+    // ---------------- UPDATE ----------------
+    @Test
+    void testUpdate() {
+
+        when(jdbcTemplate.update(anyString(), any(), any()))
+                .thenReturn(1);
+
+        assertDoesNotThrow(() -> attendanceDao.update(attendance));
+    }
+
+    // ---------------- DELETE ----------------
+    @Test
+    void testDelete() {
+
+        when(jdbcTemplate.update(anyString(), eq(1L)))
+                .thenReturn(1);
+
+        assertDoesNotThrow(() -> attendanceDao.delete(1L));
+    }
+}
