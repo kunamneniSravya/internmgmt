@@ -1,57 +1,150 @@
-// ---------------- PARAMETERIZED TEST ----------------
-@ParameterizedTest
-@ValueSource(booleans = {true, false})
-void testParameterizedAttendancePresentFlag(Boolean presentFlag) {
-    Attendance a = new Attendance();
-    a.setPresent(presentFlag);
+package com.finalproject.internMgmtSystem.repository;
 
-    assertNotNull(a.getPresent());
-    assertEquals(presentFlag, a.getPresent());
+import com.finalproject.internMgmtSystem.model.Performance;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import org.mockito.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class PerformanceDaoImplTest {
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @InjectMocks
+    private PerformanceDaoImpl performanceDao;
+
+    private Performance performance;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        performance = new Performance();
+        performance.setId(1L);
+        performance.setUserId(1L);
+        performance.setTrainerId(1L);
+        performance.setRemarks("Good work");
+        performance.setTaskEvaluationScore(90);
+        performance.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+    }
+
+    // ---------------------------------------------------------
+    // SAVE
+    // ---------------------------------------------------------
+    @Test
+    void testSave() {
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any()))
+                .thenReturn(1);
+
+        when(jdbcTemplate.queryForObject(eq("SELECT LAST_INSERT_ID()"), eq(Long.class)))
+                .thenReturn(1L);
+
+        Performance saved = performanceDao.save(performance);
+
+        assertNotNull(saved);
+        assertEquals(1L, saved.getId());
+    }
+
+    // ---------------------------------------------------------
+    // FIND BY USER ID — FOUND
+    // ---------------------------------------------------------
+    @Test
+    void testFindByUserId_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Arrays.asList(performance));
+
+        List<Performance> list = performanceDao.findByUserId(1L);
+
+        assertEquals(1, list.size());
+        assertEquals(1L, list.get(0).getUserId());
+    }
+
+    // ---------------------------------------------------------
+    // FIND BY USER ID — NOT FOUND
+    // ---------------------------------------------------------
+    @Test
+    void testFindByUserId_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Collections.emptyList());
+
+        List<Performance> list = performanceDao.findByUserId(1L);
+
+        assertTrue(list.isEmpty());
+    }
+
+    // ---------------------------------------------------------
+    // FIND BY TRAINER ID — FOUND
+    // ---------------------------------------------------------
+    @Test
+    void testFindByTrainerId_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Arrays.asList(performance));
+
+        List<Performance> list = performanceDao.findByTrainerId(1L);
+
+        assertEquals(1, list.size());
+        assertEquals(1L, list.get(0).getTrainerId());
+    }
+
+    // ---------------------------------------------------------
+    // FIND BY TRAINER ID — NOT FOUND
+    // ---------------------------------------------------------
+    @Test
+    void testFindByTrainerId_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Collections.emptyList());
+
+        List<Performance> list = performanceDao.findByTrainerId(1L);
+
+        assertTrue(list.isEmpty());
+    }
+
+    // ---------------------------------------------------------
+    // DELETE
+    // ---------------------------------------------------------
+    @Test
+    void testDeleteById() {
+        when(jdbcTemplate.update(anyString(), eq(1L)))
+                .thenReturn(1);
+
+        assertDoesNotThrow(() -> performanceDao.deleteById(1L));
+        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
+    }
+
+    // ========================================================================
+    // 🚀 PARAMETERIZED TEST (EXTRA LEARNING TEST)
+    // ========================================================================
+    @ParameterizedTest
+    @ValueSource(strings = {"Excellent work", "Good job", "Needs improvement"})
+    void testParameterizedRemarks(String remark) {
+
+        Performance p = new Performance();
+        p.setRemarks(remark);
+
+        assertNotNull(p.getRemarks());
+        assertTrue(p.getRemarks().length() > 3);
+    }
+
+    // ========================================================================
+    // 🚀 DISABLED TEST (SKIPPED TEST EXAMPLE)
+    // ========================================================================
+    @Disabled("This is a skipped test - for demonstration only")
+    @Test
+    void testDisabledExample() {
+        fail("This test is intentionally disabled");
+    }
 }
-
-// ---------------- DISABLED TEST ----------------
-@Disabled("Example disabled test for Attendance DAO")
-@Test
-void testDisabledAttendanceExample() {
-    fail("This test is intentionally disabled.");
-}
-
-
-// ---------------- PARAMETERIZED TEST ----------------
-@ParameterizedTest
-@ValueSource(ints = {1, 3, 5})
-void testParameterizedFeedbackRatings(int rating) {
-    Feedback f = new Feedback();
-    f.setRating(rating);
-
-    assertNotNull(f.getRating());
-    assertTrue(f.getRating() >= 1 && f.getRating() <= 5);
-}
-
-// ---------------- DISABLED TEST ----------------
-@Disabled("Example disabled test for Feedback DAO")
-@Test
-void testDisabledFeedbackExample() {
-    fail("This test is intentionally disabled.");
-}
-
-
-// ---------------- PARAMETERIZED TEST ----------------
-@ParameterizedTest
-@ValueSource(strings = {"Java Batch", "AI Batch", "ML Batch"})
-void testParameterizedBatchNames(String batchName) {
-    InternshipBatch batch = new InternshipBatch();
-    batch.setBatchName(batchName);
-
-    assertNotNull(batch.getBatchName());
-    assertTrue(batch.getBatchName().contains("Batch"));
-}
-
-// ---------------- DISABLED TEST ----------------
-@Disabled("Example disabled test for Batch DAO")
-@Test
-void testDisabledBatchExample() {
-    fail("This test is intentionally disabled.");
-}
-
-
