@@ -1,6 +1,6 @@
 package com.finalproject.internMgmtSystem.repository;
 
-import com.finalproject.internMgmtSystem.model.Attendance;
+import com.finalproject.internMgmtSystem.model.InternshipBatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -14,97 +14,156 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class AttendanceDaoImplTest {
+public class BatchDaoImplTest {
 
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
-    private AttendanceDaoImpl attendanceDao;
+    private BatchDaoImpl batchDao;
 
-    private Attendance attendance;
+    private InternshipBatch batch;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
 
-        attendance = new Attendance();
-        attendance.setAttendanceId(1L);  // FIXED
-        attendance.setUserId(1L);        // FIXED
-        attendance.setBatchCode(1L);     // FIXED
-        attendance.setDate(Date.valueOf("2025-01-01"));
-        attendance.setPresent(true);
+        batch = new InternshipBatch(
+                1L,
+                "Java Batch",
+                "Java Fullstack",
+                10L,                              // trainerId
+                Date.valueOf("2025-01-01"),
+                Date.valueOf("2025-06-01"),
+                50,
+                45
+        );
     }
 
-    // ---------------- SAVE ----------------
+    // ------------------------- SAVE -------------------------
     @Test
     void testSave() {
-        when(jdbcTemplate.update(anyString(), any(), any(), any(), any()))
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(1);
 
         when(jdbcTemplate.queryForObject(eq("SELECT LAST_INSERT_ID()"), eq(Long.class)))
                 .thenReturn(1L);
 
-        Attendance saved = attendanceDao.save(attendance);
+        InternshipBatch saved = batchDao.save(batch);
 
         assertNotNull(saved);
-        assertEquals(1L, saved.getAttendanceId());
-        assertEquals(1L, saved.getUserId());
+        assertEquals(1L, saved.getBatchCode());
+        assertEquals("Java Batch", saved.getBatchName());
     }
 
-    // --------------- FIND BY USER + DATE ----------------
+    // -------------------- FIND BY ID (FOUND) --------------------
     @Test
-    void testFindByUserIdAndDate_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L), eq(attendance.getDate())))
-                .thenReturn(Arrays.asList(attendance));
+    void testFindById_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Arrays.asList(batch));
 
-        Attendance result = attendanceDao.findByUserIdAndDate(1L, attendance.getDate());
+        InternshipBatch result = batchDao.findById(1L);
 
         assertNotNull(result);
-        assertEquals(1L, result.getUserId());
+        assertEquals(1L, result.getBatchCode());
     }
 
+    // -------------------- FIND BY ID (NOT FOUND) --------------------
     @Test
-    void testFindByUserIdAndDate_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L), eq(attendance.getDate())))
+    void testFindById_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
                 .thenReturn(Arrays.asList());
 
-        Attendance result = attendanceDao.findByUserIdAndDate(1L, attendance.getDate());
+        InternshipBatch result = batchDao.findById(1L);
 
         assertNull(result);
     }
 
-    // ---------------- FIND BY USER ID ----------------
+    // -------------------- FIND ALL --------------------
     @Test
-    void testFindByUserId_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(attendance, attendance));
+    void testFindAll() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
+                .thenReturn(Arrays.asList(batch, batch));
 
-        List<Attendance> list = attendanceDao.findByUserId(1L);
+        List<InternshipBatch> list = batchDao.findAll();
 
         assertEquals(2, list.size());
     }
 
+    // ---------------- FIND BY TRAINER ID (FOUND) ----------------
     @Test
-    void testFindByUserId_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+    void testFindByTrainerId_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
+                .thenReturn(Arrays.asList(batch));
+
+        List<InternshipBatch> list = batchDao.findByTrainerId(10L);
+
+        assertEquals(1, list.size());
+        assertEquals(10L, list.get(0).getTrainerId());
+    }
+
+    // ---------------- FIND BY TRAINER ID (NOT FOUND) ----------------
+    @Test
+    void testFindByTrainerId_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
                 .thenReturn(Arrays.asList());
 
-        List<Attendance> list = attendanceDao.findByUserId(1L);
+        List<InternshipBatch> list = batchDao.findByTrainerId(10L);
 
         assertTrue(list.isEmpty());
     }
 
-    // ---------------- FIND BY BATCH CODE ----------------
+    // -------------------- UPDATE --------------------
+    @Test
+    void testUpdate() {
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any(), eq(1L)))
+                .thenReturn(1);
+
+        assertDoesNotThrow(() -> batchDao.update(batch));
+    }
+
+    // -------------------- DELETE --------------------
+    @Test
+    void testDelete() {
+        when(jdbcTemplate.update(anyString(), eq(1L)))
+                .thenReturn(1);
+
+        assertDoesNotThrow(() -> batchDao.delete(1L));
+    }
+
+    // -------------------- FIND BY NAME (FOUND) --------------------
+    @Test
+    void testFindByName_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Java Batch")))
+                .thenReturn(Arrays.asList(batch));
+
+        InternshipBatch result = batchDao.findByName("Java Batch");
+
+        assertNotNull(result);
+        assertEquals("Java Batch", result.getBatchName());
+    }
+
+    // -------------------- FIND BY NAME (NOT FOUND) --------------------
+    @Test
+    void testFindByName_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Java Batch")))
+                .thenReturn(Arrays.asList());
+
+        InternshipBatch result = batchDao.findByName("Java Batch");
+
+        assertNull(result);
+    }
+
+    // -------------------- FIND BY BATCH CODE --------------------
     @Test
     void testFindByBatchCode_Found() {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(attendance));
+                .thenReturn(Arrays.asList(batch));
 
-        List<Attendance> list = attendanceDao.findByBatchCode(1L);
+        InternshipBatch result = batchDao.findByBatchCode(1L);
 
-        assertEquals(1, list.size());
-        assertEquals(1L, list.get(0).getBatchCode());
+        assertNotNull(result);
+        assertEquals(1L, result.getBatchCode());
     }
 
     @Test
@@ -112,154 +171,17 @@ public class AttendanceDaoImplTest {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
                 .thenReturn(Arrays.asList());
 
-        List<Attendance> list = attendanceDao.findByBatchCode(1L);
+        InternshipBatch result = batchDao.findByBatchCode(1L);
 
-        assertTrue(list.isEmpty());
+        assertNull(result);
     }
 
-    // ---------------- UPDATE ----------------
+    // -------------------- DECREMENT AVAILABLE SEATS --------------------
     @Test
-    void testUpdate() {
-        when(jdbcTemplate.update(anyString(), any(), any()))
-                .thenReturn(1);
-
-        assertDoesNotThrow(() -> attendanceDao.update(attendance));
-    }
-
-    // ---------------- DELETE ----------------
-    @Test
-    void testDelete() {
+    void testDecrementAvailableSeats() {
         when(jdbcTemplate.update(anyString(), eq(1L)))
                 .thenReturn(1);
 
-        assertDoesNotThrow(() -> attendanceDao.delete(1L));
-    }
-}
-
-
-package com.finalproject.internMgmtSystem.repository;
-
-import com.finalproject.internMgmtSystem.model.Feedback;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-public class FeedbackDaoImplTest {
-
-    @Mock
-    private JdbcTemplate jdbcTemplate;
-
-    @InjectMocks
-    private FeedbackDaoImpl feedbackDao;
-
-    private Feedback feedback;
-
-    @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
-
-        feedback = new Feedback(
-                1L,                      // id
-                1L,                      // userId
-                "Sravya",               // userName
-                1L,                      // batchCode
-                "Sravya Kunamneni",     // trainerName
-                new Timestamp(System.currentTimeMillis()),
-                "Very good",            // feedback
-                5                       // rating
-        );
-    }
-
-    // ------------------------ SAVE ------------------------
-    @Test
-    void testSave() {
-        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(1);
-
-        when(jdbcTemplate.queryForObject(eq("SELECT LAST_INSERT_ID()"), eq(Long.class)))
-                .thenReturn(1L);
-
-        Feedback saved = feedbackDao.save(feedback);
-
-        assertNotNull(saved);
-        assertEquals(1L, saved.getId());
-        assertEquals("Sravya", saved.getUserName());
-    }
-
-    // --------------- FIND BY TRAINER NAME (FOUND) ----------------
-    @Test
-    void testFindByTrainerName_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Sravya Kunamneni")))
-                .thenReturn(Arrays.asList(feedback));
-
-        List<Feedback> list = feedbackDao.findByTrainerName("Sravya Kunamneni");
-
-        assertEquals(1, list.size());
-        assertEquals("Sravya Kunamneni", list.get(0).getTrainerName());
-    }
-
-    // --------------- FIND BY TRAINER NAME (NOT FOUND) ----------------
-    @Test
-    void testFindByTrainerName_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Sravya Kunamneni")))
-                .thenReturn(Arrays.asList());
-
-        List<Feedback> list = feedbackDao.findByTrainerName("Sravya Kunamneni");
-
-        assertTrue(list.isEmpty());
-    }
-
-    // ---------------- FIND BY USER (FOUND) ----------------
-    @Test
-    void testFindByUserId_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(feedback));
-
-        List<Feedback> list = feedbackDao.findByUserId(1L);
-
-        assertEquals(1, list.size());
-        assertEquals(1L, list.get(0).getUserId());
-    }
-
-    // ---------------- FIND BY USER (NOT FOUND) ----------------
-    @Test
-    void testFindByUserId_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList());
-
-        List<Feedback> list = feedbackDao.findByUserId(1L);
-
-        assertTrue(list.isEmpty());
-    }
-
-    // ---------------- FIND ALL (FOUND) ----------------
-    @Test
-    void testFindAll_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
-                .thenReturn(Arrays.asList(feedback, feedback));
-
-        List<Feedback> list = feedbackDao.findAll();
-
-        assertEquals(2, list.size());
-    }
-
-    // ---------------- FIND ALL (EMPTY) ----------------
-    @Test
-    void testFindAll_Empty() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
-                .thenReturn(Arrays.asList());
-
-        List<Feedback> list = feedbackDao.findAll();
-
-        assertTrue(list.isEmpty());
+        assertDoesNotThrow(() -> batchDao.decrementAvailableSeats(1L));
     }
 }
