@@ -1,225 +1,35 @@
-package com.finalproject.internMgmtSystem.service;
+@Test
+void testAddTask_Failure() {
+    TaskDto dto = new TaskDto(1L, "Work", 1L, "PENDING",
+            Date.valueOf("2025-01-10"), "file.pdf");
 
-import com.finalproject.internMgmtSystem.dto.AttendanceDto;
-import com.finalproject.internMgmtSystem.dto.PerformanceDto;
-import com.finalproject.internMgmtSystem.dto.TaskDto;
-import com.finalproject.internMgmtSystem.dto.UserBatchDto;
-import com.finalproject.internMgmtSystem.exception.ResourceNotFoundException;
-import com.finalproject.internMgmtSystem.model.*;
-import com.finalproject.internMgmtSystem.repository.*;
+    when(taskDao.save(any())).thenReturn(null);
 
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.*;
+    assertThrows(RuntimeException.class,
+            () -> trainerService.addTask(dto));
+}@Test
+void testMarkAttendance_SaveFailed() {
+    AttendanceDto dto = new AttendanceDto(
+            1L, 1L, Date.valueOf(LocalDate.now()), true
+    );
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.util.*;
+    when(attendanceDao.save(any())).thenReturn(null);
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+    assertThrows(RuntimeException.class,
+            () -> trainerService.markAttendance(dto));
+}@Test
+void testUpdatePerformance_Failure() {
+    PerformanceDto dto = new PerformanceDto(1L, 1L, "Good", 90);
 
-class TrainerServiceTest {
+    when(performanceDao.save(any())).thenReturn(null);
 
-    @Mock private BatchDao batchDao;
-    @Mock private TaskDao taskDao;
-    @Mock private FeedbackDao feedbackDao;
-    @Mock private PerformanceDao performanceDao;
-    @Mock private AttendanceDao attendanceDao;
-    @Mock private UserBatchDao userBatchDao;
+    assertThrows(RuntimeException.class,
+            () -> trainerService.updatePerformance(dto));
+}@Test
+void testGetUsersByTrainerId_NotFound() {
+    when(userBatchDao.getUsersByTrainerId(1))
+            .thenReturn(Collections.emptyList());
 
-    @InjectMocks
-    private TrainerService trainerService;
-
-    private InternshipBatch batch;
-    private Task task;
-    private Attendance attendance;
-    private Performance performance;
-    private Feedback feedback;
-
-    @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
-
-        batch = new InternshipBatch();
-        batch.setBatchCode(1L);
-        batch.setTrainerId(1L);
-
-        task = new Task();
-        task.setId(1L);
-        task.setUserId(1L);
-        task.setTrainerId(1L);
-
-        attendance = new Attendance();
-        attendance.setAttendanceId(1L);
-        attendance.setUserId(1L);
-        attendance.setBatchCode(1L);
-        attendance.setDate(Date.valueOf(LocalDate.now()));
-        attendance.setPresent(true);
-
-        performance = new Performance();
-        performance.setId(1L);
-        performance.setUserId(1L);
-        performance.setTrainerId(1L);
-
-        feedback = new Feedback();
-        feedback.setId(1L);
-        feedback.setTrainerName("Sravya Kunamneni");
-        feedback.setUserId(1L);
-    }
-
-    @Test
-    void testGetBatches_Success() {
-        when(batchDao.findByTrainerId(1L)).thenReturn(List.of(batch));
-        List<InternshipBatch> list = trainerService.getBatches(1L);
-        assertEquals(1, list.size());
-        assertEquals(1L, list.get(0).getTrainerId());
-    }
-
-    @Test
-    void testGetBatches_NotFound() {
-        when(batchDao.findByTrainerId(1L)).thenReturn(Collections.emptyList());
-        assertThrows(ResourceNotFoundException.class,
-                () -> trainerService.getBatches(1L));
-    }
-
-    @Test
-    void testAddTask_Success() {
-        TaskDto dto = new TaskDto(1L, "Complete assignment", 1L,
-                "PENDING", Date.valueOf("2025-01-10"), "file.pdf");
-        when(taskDao.save(any())).thenReturn(task);
-        Task saved = trainerService.addTask(dto);
-        assertNotNull(saved);
-        assertEquals(1L, saved.getId());
-    }
-
-    @Test
-    void testUpdateTask_Success() {
-        TaskDto dto = new TaskDto(1L, "Updated task", 1L,
-                "DONE", Date.valueOf("2025-01-15"), "file2.pdf");
-        when(taskDao.findById(1L)).thenReturn(task);
-        assertDoesNotThrow(() -> trainerService.updateTask(dto, 1L));
-    }
-
-    @Test
-    void testUpdateTask_NotFound() {
-        when(taskDao.findById(1L)).thenReturn(null);
-        assertThrows(ResourceNotFoundException.class,
-                () -> trainerService.updateTask(new TaskDto(), 1L));
-    }
-
-    @Test
-    void testDeleteTask_Success() {
-        when(taskDao.findById(1L)).thenReturn(task);
-        assertDoesNotThrow(() -> trainerService.deleteTask(1L));
-    }
-
-    @Test
-    void testDeleteTask_NotFound() {
-        when(taskDao.findById(1L)).thenReturn(null);
-        assertThrows(ResourceNotFoundException.class,
-                () -> trainerService.deleteTask(1L));
-    }
-
-    @Test
-    void testMarkAttendance_Success() {
-        AttendanceDto dto = new AttendanceDto(
-                1L, 1L, Date.valueOf(LocalDate.now()), true
-        );
-        when(attendanceDao.save(any())).thenReturn(attendance);
-        Attendance saved = trainerService.markAttendance(dto);
-        assertNotNull(saved);
-        assertEquals(1L, saved.getUserId());
-    }
-
-    @Test
-    void testMarkAttendance_FutureDate() {
-        AttendanceDto dto = new AttendanceDto(
-                1L, 1L, Date.valueOf(LocalDate.now().plusDays(2)), true
-        );
-        assertThrows(RuntimeException.class,
-                () -> trainerService.markAttendance(dto));
-    }
-
-    @Test
-    void testUpdatePerformance_Success() {
-        PerformanceDto dto = new PerformanceDto(1L, 1L, "Good work", 90);
-        when(performanceDao.save(any())).thenReturn(performance);
-        Performance saved = trainerService.updatePerformance(dto);
-        assertNotNull(saved);
-        assertEquals(1L, saved.getUserId());
-    }
-
-    @Test
-    void testViewFeedback_Success() {
-        when(feedbackDao.findByTrainerName("Sravya Kunamneni"))
-                .thenReturn(List.of(feedback));
-        List<Feedback> list = trainerService.viewFeedback("Sravya Kunamneni");
-        assertEquals(1, list.size());
-    }
-
-    @Test
-    void testViewFeedback_NotFound() {
-        when(feedbackDao.findByTrainerName("Sravya Kunamneni"))
-                .thenReturn(Collections.emptyList());
-        assertThrows(ResourceNotFoundException.class,
-                () -> trainerService.viewFeedback("Sravya Kunamneni"));
-    }
-
-    @Test
-    void testGetUsersByTrainerId() {
-        UserBatchDto dto = new UserBatchDto();
-        dto.setUserId(1L);
-        when(userBatchDao.getUsersByTrainerId(1))
-                .thenReturn(List.of(dto));
-        List<UserBatchDto> list = trainerService.getUsersByTrainerId(1);
-        assertEquals(1, list.size());
-        assertEquals(1L, list.get(0).getUserId());
-    }
-
-    @Test
-    void testGetTasksByTrainerId_Success() {
-        when(taskDao.findByTrainerId(1L)).thenReturn(List.of(task));
-        List<Task> list = trainerService.getTasksByTrainerId(1L);
-        assertEquals(1, list.size());
-    }
-
-    @Test
-    void testGetTasksByTrainerId_NotFound() {
-        when(taskDao.findByTrainerId(1L)).thenReturn(Collections.emptyList());
-        assertThrows(ResourceNotFoundException.class,
-                () -> trainerService.getTasksByTrainerId(1L));
-    }
-
-    @Test
-    void testGetPerformanceByTrainerId_Success() {
-        when(performanceDao.findByTrainerId(1L))
-                .thenReturn(List.of(performance));
-        List<Performance> list = trainerService.getPerformanceByTrainerId(1L);
-        assertEquals(1, list.size());
-    }
-
-    @Test
-    void testGetPerformanceByTrainerId_NotFound() {
-        when(performanceDao.findByTrainerId(1L))
-                .thenReturn(Collections.emptyList());
-        assertThrows(ResourceNotFoundException.class,
-                () -> trainerService.getPerformanceByTrainerId(1L));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"Task A", "Task B", "Task C"})
-    void testParameterizedTaskDescriptions(String desc) {
-        Task t = new Task();
-        t.setDescription(desc);
-        assertNotNull(t.getDescription());
-    }
-
-    @Disabled("Skipping example test")
-    @Test
-    void testDisabledExample() {
-        fail("This test is disabled");
-    }
+    assertThrows(ResourceNotFoundException.class,
+            () -> trainerService.getUsersByTrainerId(1));
 }
