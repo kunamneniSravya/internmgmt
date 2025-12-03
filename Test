@@ -1,6 +1,6 @@
 package com.finalproject.internMgmtSystem.repository;
 
-import com.finalproject.internMgmtSystem.model.Task;
+import com.finalproject.internMgmtSystem.model.Trainer;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -8,35 +8,37 @@ import org.mockito.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class TaskDaoImplTest {
+public class TrainerDaoImplTest {
 
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
-    private TaskDaoImpl taskDao;
+    private TrainerDaoImpl trainerDao;
 
-    private Task task;
+    private Trainer trainer;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
 
-        task = new Task(
+        trainer = new Trainer(
                 1L,
-                1L,
-                "Complete module",
-                1L,
-                "PENDING",
-                Date.valueOf("2025-01-10"),
-                "file.pdf",
+                "Sravya",
+                "sravya@gmail.com",
+                "password123",
+                "9876543210",
+                "3 years",
+                "Java, Spring",
+                "profile.jpg",
+                "Trainer bio",
+                "TRAINER",
                 new Timestamp(System.currentTimeMillis())
         );
     }
@@ -46,16 +48,43 @@ public class TaskDaoImplTest {
     // ------------------------------------------------------------------
     @Test
     void testSave() {
-        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any()))
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(1);
 
         when(jdbcTemplate.queryForObject(eq("SELECT LAST_INSERT_ID()"), eq(Long.class)))
                 .thenReturn(1L);
 
-        Task saved = taskDao.save(task);
+        Trainer saved = trainerDao.save(trainer);
 
         assertNotNull(saved);
-        assertEquals(1L, saved.getId());
+        assertEquals(1L, saved.getTrainerId());
+    }
+
+    // ------------------------------------------------------------------
+    // FIND BY EMAIL - FOUND
+    // ------------------------------------------------------------------
+    @Test
+    void testFindByEmail_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("sravya@gmail.com")))
+                .thenReturn(Arrays.asList(trainer));
+
+        Trainer result = trainerDao.findByEmail("sravya@gmail.com");
+
+        assertNotNull(result);
+        assertEquals("Sravya", result.getName());
+    }
+
+    // ------------------------------------------------------------------
+    // FIND BY EMAIL - NOT FOUND
+    // ------------------------------------------------------------------
+    @Test
+    void testFindByEmail_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("unknown@gmail.com")))
+                .thenReturn(Collections.emptyList());
+
+        Trainer result = trainerDao.findByEmail("unknown@gmail.com");
+
+        assertNull(result);
     }
 
     // ------------------------------------------------------------------
@@ -64,12 +93,12 @@ public class TaskDaoImplTest {
     @Test
     void testFindById_Found() {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(task));
+                .thenReturn(Arrays.asList(trainer));
 
-        Task result = taskDao.findById(1L);
+        Trainer result = trainerDao.findById(1L);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
+        assertEquals(1L, result.getTrainerId());
     }
 
     // ------------------------------------------------------------------
@@ -80,60 +109,33 @@ public class TaskDaoImplTest {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
                 .thenReturn(Collections.emptyList());
 
-        Task result = taskDao.findById(1L);
+        Trainer result = trainerDao.findById(1L);
 
         assertNull(result);
     }
 
     // ------------------------------------------------------------------
-    // FIND BY USER ID - FOUND
+    // FIND ALL
     // ------------------------------------------------------------------
     @Test
-    void testFindByUserId_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(task, task));
+    void testFindAll() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
+                .thenReturn(Arrays.asList(trainer, trainer));
 
-        List<Task> list = taskDao.findByUserId(1L);
+        List<Trainer> list = trainerDao.findAll();
 
         assertEquals(2, list.size());
     }
 
     // ------------------------------------------------------------------
-    // FIND BY USER ID - NOT FOUND
+    // FIND ALL - EMPTY
     // ------------------------------------------------------------------
     @Test
-    void testFindByUserId_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+    void testFindAll_Empty() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
                 .thenReturn(Collections.emptyList());
 
-        List<Task> result = taskDao.findByUserId(1L);
-
-        assertTrue(result.isEmpty());
-    }
-
-    // ------------------------------------------------------------------
-    // FIND BY TRAINER ID - FOUND
-    // ------------------------------------------------------------------
-    @Test
-    void testFindByTrainerId_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(task));
-
-        List<Task> list = taskDao.findByTrainerId(1L);
-
-        assertEquals(1, list.size());
-        assertEquals(1L, list.get(0).getTrainerId());
-    }
-
-    // ------------------------------------------------------------------
-    // FIND BY TRAINER ID - NOT FOUND
-    // ------------------------------------------------------------------
-    @Test
-    void testFindByTrainerId_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Collections.emptyList());
-
-        List<Task> list = taskDao.findByTrainerId(1L);
+        List<Trainer> list = trainerDao.findAll();
 
         assertTrue(list.isEmpty());
     }
@@ -143,39 +145,50 @@ public class TaskDaoImplTest {
     // ------------------------------------------------------------------
     @Test
     void testUpdate() {
-        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any()))
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(1);
 
-        assertDoesNotThrow(() -> taskDao.update(task));
+        assertDoesNotThrow(() -> trainerDao.update(trainer));
     }
 
     // ------------------------------------------------------------------
-    // DELETE
+    // DELETE BY ID
     // ------------------------------------------------------------------
     @Test
-    void testDelete() {
+    void testDeleteById() {
         when(jdbcTemplate.update(anyString(), eq(1L)))
                 .thenReturn(1);
 
-        assertDoesNotThrow(() -> taskDao.delete(1L));
+        assertDoesNotThrow(() -> trainerDao.deleteById(1L));
+    }
+
+    // ------------------------------------------------------------------
+    // DELETE BY EMAIL
+    // ------------------------------------------------------------------
+    @Test
+    void testDeleteByEmail() {
+        when(jdbcTemplate.update(anyString(), eq("sravya@gmail.com")))
+                .thenReturn(1);
+
+        assertDoesNotThrow(() -> trainerDao.deleteByEmail("sravya@gmail.com"));
     }
 
     // ------------------------------------------------------------------
     // PARAMETERIZED TEST
     // ------------------------------------------------------------------
     @ParameterizedTest
-    @ValueSource(strings = {"PENDING", "IN_PROGRESS", "COMPLETED"})
-    void testParameterizedStatusValues(String status) {
-        task.setStatus(status);
+    @ValueSource(strings = {"Java", "Python", "DevOps"})
+    void testParameterizedSkills(String skill) {
+        trainer.setSkills(skill);
 
-        assertNotNull(task.getStatus());
-        assertTrue(task.getStatus().length() > 0);
+        assertNotNull(trainer.getSkills());
+        assertTrue(trainer.getSkills().length() > 0);
     }
 
     // ------------------------------------------------------------------
     // DISABLED TEST
     // ------------------------------------------------------------------
-    @Disabled("Example skipped test - TaskDaoImpl")
+    @Disabled("Example skipped test - TrainerDaoImpl")
     @Test
     void testDisabledExample() {
         fail("This test is disabled intentionally");
