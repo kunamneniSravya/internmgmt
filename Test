@@ -7,134 +7,219 @@ import com.finalproject.internMgmtSystem.dto.UserBatchDto;
 import com.finalproject.internMgmtSystem.exception.ResourceNotFoundException;
 import com.finalproject.internMgmtSystem.model.*;
 import com.finalproject.internMgmtSystem.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.*;
+
+import java.sql.Date;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
-@Service
-public class TrainerService {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-    @Autowired
-    private BatchDao batchDao;
+class TrainerServiceTest {
 
-    @Autowired
-    private TaskDao taskDao;
+    @Mock private BatchDao batchDao;
+    @Mock private TaskDao taskDao;
+    @Mock private FeedbackDao feedbackDao;
+    @Mock private PerformanceDao performanceDao;
+    @Mock private AttendanceDao attendanceDao;
+    @Mock private UserBatchDao userBatchDao;
 
-    @Autowired
-    private FeedbackDao feedbackDao;
+    @InjectMocks
+    private TrainerService trainerService;
 
-    @Autowired
-    private PerformanceDao performanceDao;
+    private InternshipBatch batch;
+    private Task task;
+    private Attendance attendance;
+    private Performance performance;
+    private Feedback feedback;
 
-    @Autowired
-    private AttendanceDao attendanceDao;
-    
-    @Autowired
-    private UserBatchDao UserBatchDao;
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
 
-    public List<InternshipBatch> getBatches(Long trainerId) {
-        List<InternshipBatch> list = batchDao.findByTrainerId(trainerId);
+        batch = new InternshipBatch();
+        batch.setBatchCode(1L);
+        batch.setTrainerId(1L);
 
-        if (list.isEmpty()) {
-            throw new ResourceNotFoundException("No batches assigned to trainer ID: " + trainerId);
-        }
+        task = new Task();
+        task.setId(1L);
+        task.setUserId(1L);
+        task.setTrainerId(1L);
 
-        return list;
+        attendance = new Attendance();
+        attendance.setAttendanceId(1L);
+        attendance.setUserId(1L);
+        attendance.setBatchCode(1L);
+        attendance.setDate(Date.valueOf(LocalDate.now()));
+        attendance.setPresent(true);
+
+        performance = new Performance();
+        performance.setId(1L);
+        performance.setUserId(1L);
+        performance.setTrainerId(1L);
+
+        feedback = new Feedback();
+        feedback.setId(1L);
+        feedback.setTrainerName("Sravya Kunamneni");
+        feedback.setUserId(1L);
     }
 
-    public Task addTask(TaskDto dto) {
+    @Test
+    void testGetBatches_Success() {
+        when(batchDao.findByTrainerId(1L)).thenReturn(List.of(batch));
+        List<InternshipBatch> list = trainerService.getBatches(1L);
+        assertEquals(1, list.size());
+        assertEquals(1L, list.get(0).getTrainerId());
+    }
 
-        // Optional: validate if user exists / trainer exists
+    @Test
+    void testGetBatches_NotFound() {
+        when(batchDao.findByTrainerId(1L)).thenReturn(Collections.emptyList());
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.getBatches(1L));
+    }
 
+    @Test
+    void testAddTask_Success() {
+        TaskDto dto = new TaskDto(1L, "Complete assignment", 1L,
+                "PENDING", Date.valueOf("2025-01-10"), "file.pdf");
+        when(taskDao.save(any())).thenReturn(task);
+        Task saved = trainerService.addTask(dto);
+        assertNotNull(saved);
+        assertEquals(1L, saved.getId());
+    }
+
+    @Test
+    void testUpdateTask_Success() {
+        TaskDto dto = new TaskDto(1L, "Updated task", 1L,
+                "DONE", Date.valueOf("2025-01-15"), "file2.pdf");
+        when(taskDao.findById(1L)).thenReturn(task);
+        assertDoesNotThrow(() -> trainerService.updateTask(dto, 1L));
+    }
+
+    @Test
+    void testUpdateTask_NotFound() {
+        when(taskDao.findById(1L)).thenReturn(null);
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.updateTask(new TaskDto(), 1L));
+    }
+
+    @Test
+    void testDeleteTask_Success() {
+        when(taskDao.findById(1L)).thenReturn(task);
+        assertDoesNotThrow(() -> trainerService.deleteTask(1L));
+    }
+
+    @Test
+    void testDeleteTask_NotFound() {
+        when(taskDao.findById(1L)).thenReturn(null);
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.deleteTask(1L));
+    }
+
+    @Test
+    void testMarkAttendance_Success() {
+        AttendanceDto dto = new AttendanceDto(
+                1L, 1L, Date.valueOf(LocalDate.now()), true
+        );
+        when(attendanceDao.save(any())).thenReturn(attendance);
+        Attendance saved = trainerService.markAttendance(dto);
+        assertNotNull(saved);
+        assertEquals(1L, saved.getUserId());
+    }
+
+    @Test
+    void testMarkAttendance_FutureDate() {
+        AttendanceDto dto = new AttendanceDto(
+                1L, 1L, Date.valueOf(LocalDate.now().plusDays(2)), true
+        );
+        assertThrows(RuntimeException.class,
+                () -> trainerService.markAttendance(dto));
+    }
+
+    @Test
+    void testUpdatePerformance_Success() {
+        PerformanceDto dto = new PerformanceDto(1L, 1L, "Good work", 90);
+        when(performanceDao.save(any())).thenReturn(performance);
+        Performance saved = trainerService.updatePerformance(dto);
+        assertNotNull(saved);
+        assertEquals(1L, saved.getUserId());
+    }
+
+    @Test
+    void testViewFeedback_Success() {
+        when(feedbackDao.findByTrainerName("Sravya Kunamneni"))
+                .thenReturn(List.of(feedback));
+        List<Feedback> list = trainerService.viewFeedback("Sravya Kunamneni");
+        assertEquals(1, list.size());
+    }
+
+    @Test
+    void testViewFeedback_NotFound() {
+        when(feedbackDao.findByTrainerName("Sravya Kunamneni"))
+                .thenReturn(Collections.emptyList());
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.viewFeedback("Sravya Kunamneni"));
+    }
+
+    @Test
+    void testGetUsersByTrainerId() {
+        UserBatchDto dto = new UserBatchDto();
+        dto.setUserId(1L);
+        when(userBatchDao.getUsersByTrainerId(1))
+                .thenReturn(List.of(dto));
+        List<UserBatchDto> list = trainerService.getUsersByTrainerId(1);
+        assertEquals(1, list.size());
+        assertEquals(1L, list.get(0).getUserId());
+    }
+
+    @Test
+    void testGetTasksByTrainerId_Success() {
+        when(taskDao.findByTrainerId(1L)).thenReturn(List.of(task));
+        List<Task> list = trainerService.getTasksByTrainerId(1L);
+        assertEquals(1, list.size());
+    }
+
+    @Test
+    void testGetTasksByTrainerId_NotFound() {
+        when(taskDao.findByTrainerId(1L)).thenReturn(Collections.emptyList());
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.getTasksByTrainerId(1L));
+    }
+
+    @Test
+    void testGetPerformanceByTrainerId_Success() {
+        when(performanceDao.findByTrainerId(1L))
+                .thenReturn(List.of(performance));
+        List<Performance> list = trainerService.getPerformanceByTrainerId(1L);
+        assertEquals(1, list.size());
+    }
+
+    @Test
+    void testGetPerformanceByTrainerId_NotFound() {
+        when(performanceDao.findByTrainerId(1L))
+                .thenReturn(Collections.emptyList());
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.getPerformanceByTrainerId(1L));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Task A", "Task B", "Task C"})
+    void testParameterizedTaskDescriptions(String desc) {
         Task t = new Task();
-        t.setUserId(dto.getUserId());
-        t.setDescription(dto.getDescription());
-        t.setTrainerId(dto.getTrainerId());
-        t.setStatus(dto.getStatus());
-        t.setDeadline(dto.getDeadline());
-        t.setUploadFile(dto.getUploadFile());
-
-        return taskDao.save(t);
+        t.setDescription(desc);
+        assertNotNull(t.getDescription());
     }
 
-    public void updateTask(TaskDto dto, Long taskId) {
-        Task t = taskDao.findById(taskId);
-        if (t == null) {
-            throw new ResourceNotFoundException("Task not found with ID: " + taskId);
-        }
-
-        t.setDescription(dto.getDescription());
-        t.setStatus(dto.getStatus());
-        t.setDeadline(dto.getDeadline());
-        t.setUploadFile(dto.getUploadFile());
-
-        taskDao.update(t);
+    @Disabled("Skipping example test")
+    @Test
+    void testDisabledExample() {
+        fail("This test is disabled");
     }
-
-    public void deleteTask(Long id) {
-        Task exists = taskDao.findById(id);
-        if (exists == null) {
-            throw new ResourceNotFoundException("Task not found with ID: " + id);
-        }
-
-        taskDao.delete(id);
-    }
-
-    public Attendance markAttendance(AttendanceDto dto) {
-
-        if (dto.getDate().toLocalDate().isAfter(LocalDate.now())) {
-            throw new RuntimeException("Cannot mark attendance for future dates");
-        }
-
-        Attendance a = new Attendance();
-        a.setUserId(dto.getUserId());
-        a.setBatchCode(dto.getBatchCode());
-        a.setDate(dto.getDate());
-        a.setPresent(dto.getPresent());
-
-        return attendanceDao.save(a);
-    }
-
-    public Performance updatePerformance(PerformanceDto dto) {
-
-        Performance p = new Performance();
-        p.setUserId(dto.getUserId());
-        p.setTrainerId(dto.getTrainerId());
-        p.setRemarks(dto.getRemarks());
-        p.setTaskEvaluationScore(dto.getTaskEvaluationScore());
-
-        return performanceDao.save(p);
-    }
-
-    public List<Feedback> viewFeedback(String trainerName) {
-        List<Feedback> list = feedbackDao.findByTrainerName(trainerName);
-
-        if (list.isEmpty()) {
-            throw new ResourceNotFoundException("No feedback found for trainer: " + trainerName);
-        }
-
-        return list;
-    }
-    
-    public List<UserBatchDto> getUsersByTrainerId(int trainerId) {
-        return UserBatchDao.getUsersByTrainerId(trainerId);
-    }
-    public List<Task> getTasksByTrainerId(Long trainerId) {
-        List<Task> tasks = taskDao.findByTrainerId(trainerId);
-        if (tasks.isEmpty()) {
-            throw new ResourceNotFoundException("No tasks found for trainer ID: " + trainerId);
-        }
-        return tasks;
-    }
-
-    public List<Performance> getPerformanceByTrainerId(Long trainerId) {
-        List<Performance> list = performanceDao.findByTrainerId(trainerId);
-        if (list.isEmpty()) {
-            throw new ResourceNotFoundException("No performance records found for trainer ID: " + trainerId);
-        }
-        return list;
-    }
-
 }
