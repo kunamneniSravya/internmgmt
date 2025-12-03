@@ -1,23 +1,57 @@
-//-----Parameterized Test----------
-	//run method for multiple inputs
-	@ParameterizedTest
-	@ValueSource(strings = {"Hotel X","Hotel Y","Hotel Z"})
-	void testParameterizedHotelNames(String name) {
-		Hotel hotel = new Hotel();
-		hotel.setName(name);
-		assertNotNull(hotel.getName());
-		assertTrue(hotel.getName().startsWith("Hotel"));
-		//run the test multiple times - values - in ValueSource -3
-		//for each name - create a new Hotel, set the name, verify name is not null and start with Hotel
-	}
-	
-	//-------Skip Test----
-	@Disabled("Example skipped DAO test")
-	@Test
-	void testDisableExample() {
-		fail("This DAO test is disabled and skipped");
-		//test was enables - it would have been failed
-		//learning how to skip test
-		
-	}
-	
+// ---------------- PARAMETERIZED TEST ----------------
+@ParameterizedTest
+@ValueSource(booleans = {true, false})
+void testParameterizedAttendancePresentFlag(Boolean presentFlag) {
+    Attendance a = new Attendance();
+    a.setPresent(presentFlag);
+
+    assertNotNull(a.getPresent());
+    assertEquals(presentFlag, a.getPresent());
+}
+
+// ---------------- DISABLED TEST ----------------
+@Disabled("Example disabled test for Attendance DAO")
+@Test
+void testDisabledAttendanceExample() {
+    fail("This test is intentionally disabled.");
+}
+
+
+// ---------------- PARAMETERIZED TEST ----------------
+@ParameterizedTest
+@ValueSource(ints = {1, 3, 5})
+void testParameterizedFeedbackRatings(int rating) {
+    Feedback f = new Feedback();
+    f.setRating(rating);
+
+    assertNotNull(f.getRating());
+    assertTrue(f.getRating() >= 1 && f.getRating() <= 5);
+}
+
+// ---------------- DISABLED TEST ----------------
+@Disabled("Example disabled test for Feedback DAO")
+@Test
+void testDisabledFeedbackExample() {
+    fail("This test is intentionally disabled.");
+}
+
+
+// ---------------- PARAMETERIZED TEST ----------------
+@ParameterizedTest
+@ValueSource(strings = {"Java Batch", "AI Batch", "ML Batch"})
+void testParameterizedBatchNames(String batchName) {
+    InternshipBatch batch = new InternshipBatch();
+    batch.setBatchName(batchName);
+
+    assertNotNull(batch.getBatchName());
+    assertTrue(batch.getBatchName().contains("Batch"));
+}
+
+// ---------------- DISABLED TEST ----------------
+@Disabled("Example disabled test for Batch DAO")
+@Test
+void testDisabledBatchExample() {
+    fail("This test is intentionally disabled.");
+}
+
+
