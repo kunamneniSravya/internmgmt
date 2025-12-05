@@ -1,14 +1,101 @@
+Here are expanded, polished, and form-ready answers you can directly paste into the Google Form:
+
+
+---
+
 AI Skills & Exposure
-Share details if you have any understanding or exposure to AI-related skills.
-Enter your answer
-9.Domain/Functional Knowledge
-Mention any specific domain or functional knowledge you possess.
-Enter your answer
-10.Skills Trained at Genpact
-List the skills you have been trained in during your time at Genpact.
-Enter your answer
-11.Academic/Internship Projects
-Please provide: 1. Project Name 2. One-line description 3. Technologies used 4. Your role.
-Enter your answer
-12.Projects at Genpact
-Share details of any project you have worked on at Genpact.
+
+Hands-on experience with AI/ML model development, deep learning architectures (CNN, CRNN), computer vision using YOLOv8, and Generative AI (LLaMA-2, LangChain). Skilled in data preprocessing, feature engineering, model training, hyperparameter tuning, and deployment using FastAPI and AWS. Exposure to real-time video analytics, predictive modeling, optimization algorithms (WOA), and building end-to-end AI systems for healthcare, traffic, and automation domains.
+
+
+---
+
+Domain/Functional Knowledge
+
+Strong understanding of Healthcare imaging (SWE elastography), Intelligent Transportation Systems, Smart City traffic management, and Workforce/Intern management workflows. Knowledge of sensor-based automation, route optimization logic, data-driven decision-making, and user-role-based application functionalities. Experience working with industry-level datasets, CCTV-based traffic analytics, and process automation concepts.
+
+
+---
+
+Skills Trained at Genpact
+
+Trained in Python programming, SQL, Data Analytics, Exploratory Data Analysis (EDA), and business communication. Gained exposure to process excellence, workflow understanding, problem-solving techniques, automation fundamentals, and applying analytics to business use cases. Experienced in documentation, requirement gathering, and presenting insights.
+
+
+---
+
+Academic/Internship Projects
+
+1. Optimizing Urban Traffic Flow using AI Techniques in 6G ITS
+
+One-line: Real-time traffic congestion detection and route optimization using AI and 6G technologies.
+
+Technologies: Python, YOLOv8, OpenCV, FastAPI, Twilio API, 6G concepts
+
+Role: Developed YOLO model pipeline, backend optimization logic, and real-time alert system.
+
+
+2. Stage-Wise Breast Lump Characterization by SWE Using Deep Learning
+
+One-line: AI model to classify breast lumps from SWE images for early diagnosis.
+
+Technologies: Python, CRNN, WOA, OpenCV
+
+Role: Built preprocessing pipeline, implemented CRNN model, tuned hyperparameters.
+
+
+3. PetCare Assistance Using LLaMA-2
+
+One-line: AI-powered pet care chatbot offering veterinary support.
+
+Technologies: LLaMA-2, LangChain, AWS SageMaker
+
+Role: Integrated LLM workflow, prompt design, deployment on SageMaker.
+
+
+4. Vitamin Deficiency Detection using Machine Learning
+
+One-line: CNN-based model to identify vitamin deficiencies from tissue images.
+
+Technologies: Python, CNN, OpenCV
+
+Role: Model building, dataset preparation, evaluation.
+
+
+5. AI-Powered Soil Moisture Irrigation System
+
+One-line: Automated irrigation using AI-based decision rules and sensor data.
+
+Technologies: Sensors, Python, Rule-based AI
+
+Role: Designed logic flow, optimized irrigation triggers.
+
+
+
+---
+
+Projects at Genpact
+
+Worked on data analytics mini-projects involving dataset cleaning, transformation, SQL querying, and KPI extraction. Built dashboards and reports to summarize insights for sample business cases. Contributed to a small ML use case involving classification and performance comparison of basic models. Participated in process understanding exercises and automation feasibility analysis.
+
+
+---
+
+If you want, I can shorten these or convert them into ultra-brief versions for character-limited fields.
+
+
+
+Here is the updated Genpact projects section with your details included, clean and form-ready:
+
+
+---
+
+Projects at Genpact
+
+Worked on Intern Connect, a web-based intern management system for attendance tracking, task assignment, performance monitoring, and batch allocation. Contributed to frontend UI development, backend API integration, and database workflows.
+Also worked on a Hiking Management System, focusing on managing hike-related requests, approvals, employee details, and workflow automation. Involved in designing modules, implementing logic, and improving process efficiency.
+
+
+---
+
+If you want, I can refine it further or merge it into a single concise line for the form.
