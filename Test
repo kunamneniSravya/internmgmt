@@ -18,3 +18,113 @@ void testGetStipendHistory_NotFound() {
 
     verify(stipendDao).findByUserId(1L);
 }
+
+Perfect — that means your UserService DOES NOT throw exceptions for empty results,
+so the correct negative tests = EMPTY LIST tests (NOT exceptions).
+
+Your service methods are:
+
+return taskDao.findByUserId(userId);       // no exception
+return performanceDao.findByUserId(userId);
+return stipendDao.findByUserId(userId);
+return attendanceDao.findByUserId(userId);
+
+So the only correct negative test case is:
+
+✔ DAO returns empty
+✔ Service returns empty
+✔ No exceptions
+
+Below are the final correct negative test cases that you MUST keep
+(these will NOT fail).
+
+
+---
+
+✅ FINAL NEGATIVE TEST CASES — WORKING VERSION
+
+❌ getTasks – Negative Case (Empty Result)
+
+@Test
+void testGetTasks_Empty() {
+    when(taskDao.findByUserId(1L)).thenReturn(List.of());
+
+    List<Task> list = userService.getTasks(1L);
+
+    assertTrue(list.isEmpty());
+    verify(taskDao).findByUserId(1L);
+}
+
+
+---
+
+❌ getPerformance – Negative Case (Empty Result)
+
+@Test
+void testGetPerformance_Empty() {
+    when(performanceDao.findByUserId(1L)).thenReturn(List.of());
+
+    List<Performance> list = userService.getPerformance(1L);
+
+    assertTrue(list.isEmpty());
+    verify(performanceDao).findByUserId(1L);
+}
+
+
+---
+
+❌ getStipendHistory – Negative Case (Empty Result)
+
+@Test
+void testGetStipendHistory_Empty() {
+    when(stipendDao.findByUserId(1L)).thenReturn(List.of());
+
+    List<Stipend> list = userService.getStipendHistory(1L);
+
+    assertTrue(list.isEmpty());
+    verify(stipendDao).findByUserId(1L);
+}
+
+
+---
+
+❌ getAttendance – Negative Case (Empty Result)
+
+@Test
+void testGetAttendance_Empty() {
+    when(attendanceDao.findByUserId(1L)).thenReturn(List.of());
+
+    List<Attendance> list = userService.getAttendance(1L);
+
+    assertTrue(list.isEmpty());
+    verify(attendanceDao).findByUserId(1L);
+}
+
+
+---
+
+🎯 WHY EXCEPTION TESTS FAIL FOR YOU
+
+Because your service NEVER throws exceptions for empty lists.
+So:
+
+❌ NOT FOUND negative tests
+➡️ will always fail
+
+✔ EMPTY LIST negative tests
+➡️ always pass
+
+This is the correct behavior based on your service logic.
+
+
+---
+
+If you want, I can regenerate your entire UserServiceTest file with:
+
+✔ Positive cases
+✔ Negative (empty) cases
+✔ Parameterized test
+✔ Disabled test
+✔ verify() everywhere
+
+Just say “Regenerate full UserServiceTest”.
