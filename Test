@@ -7,3 +7,14 @@ void testGetStipendHistory_Empty() {
     assertTrue(list.isEmpty());
     verify(stipendDao).findByUserId(1L);
 }
+
+
+@Test
+void testGetStipendHistory_NotFound() {
+    when(stipendDao.findByUserId(1L)).thenReturn(List.of());
+
+    assertThrows(ResourceNotFoundException.class,
+            () -> userService.getStipendHistory(1L));
+
+    verify(stipendDao).findByUserId(1L);
+}
