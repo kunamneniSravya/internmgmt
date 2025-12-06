@@ -1,122 +1,118 @@
---Your integration test uses JdbcTemplate-based DAOs, so H2 must have all the tables they will query/insert/update.
+package com.finalproject.internMgmtSystem.integration;
 
-CREATE TABLE trainers (
-    trainer_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255),
-    email VARCHAR(255),
-    password VARCHAR(255),
-    contact VARCHAR(50),
-    experience VARCHAR(100),
-    skills VARCHAR(255),
-    profile_pic VARCHAR(500),
-    bio VARCHAR(1000),
-    role VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finalproject.internMgmtSystem.InternMgmtSystemApplication;
+import com.finalproject.internMgmtSystem.dto.CreateAdminDto;
+import com.finalproject.internMgmtSystem.dto.LoginRequest;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 
-CREATE TABLE users (
-    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_name VARCHAR(255),
-    email VARCHAR(255),
-    password VARCHAR(255),
-    dob DATE,
-    contact_no VARCHAR(50),
-    address VARCHAR(255),
-    college_name VARCHAR(255),
-    grade VARCHAR(50),
-    major VARCHAR(100),
-    team VARCHAR(100),
-    batch_code BIGINT,
-    start_date DATE,
-    end_date DATE,
-    graduating_year INT,
-    resume VARCHAR(500),
-    profile_pic VARCHAR(500),
-    role VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-CREATE TABLE internship_batches (
-    batch_code BIGINT AUTO_INCREMENT PRIMARY KEY,
-    batch_name VARCHAR(255),
-    course_name VARCHAR(255),
-    trainer_id BIGINT,
-    start_date DATE,
-    end_date DATE,
-    total_seats INT,
-    available_seats INT
-);
+@SpringBootTest(classes = InternMgmtSystemApplication.class)
+@ActiveProfiles("test")
+@AutoConfigureMockMvc
+class AuthControllerIntegrationTest {
 
-CREATE TABLE stipend (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
-    user_name VARCHAR(255),
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payment_mode VARCHAR(50),
-    amount DOUBLE
-);
+    @Autowired
+    private MockMvc mockMvc;
 
-CREATE TABLE tasks (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
-    description VARCHAR(1000),
-    trainer_id BIGINT,
-    status VARCHAR(50),
-    deadline DATE,
-    upload_file VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    @Autowired
+    private ObjectMapper mapper;
 
-CREATE TABLE feedback (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
-    user_name VARCHAR(255),
-    batch_code BIGINT,
-    trainer_id BIGINT,
-    trainer_name VARCHAR(255),
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    feedback VARCHAR(2000),
-    rating INT
-);
+    // ---------------------------
+    // LOGIN SUCCESS (User)
+    // ---------------------------
+    @Test
+    void testLogin_UserSuccess() throws Exception {
+        LoginRequest req = new LoginRequest("sravya@user.com", "pass123");
 
-CREATE TABLE performance (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
-    trainer_id BIGINT,
-    batch_code BIGINT,
-    trainer_name VARCHAR(255),
-    remarks VARCHAR(2000),
-    task_evaluation_score INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists());
+    }
 
-CREATE TABLE attendance (
-    attendance_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT,
-    batch_code BIGINT,
-    date DATE,
-    present BOOLEAN
-);
-INSERT INTO trainers (trainer_id, name, email, password, contact, experience, skills, bio, role)
-VALUES (1, 'John Miller', 'john@trainer.com', 'pass123', '9876543210', '5 Years', 'Java, Spring', 'Senior Trainer', 'TRAINER');
+    // ---------------------------
+    // LOGIN FAILURE - WRONG PASSWORD
+    // ---------------------------
+    @Test
+    void testLogin_WrongPassword() throws Exception {
+        LoginRequest req = new LoginRequest("sravya@user.com", "wrong");
 
-INSERT INTO users (user_id, user_name, email, password, dob, contact_no, address, college_name, grade, major, team, batch_code, start_date, end_date, graduating_year, resume, role)
-VALUES(1, 'Sravya', 'sravya@user.com', 'pass123', '2002-05-10', '9876543210', 'Chennai', 'Vel Tech', 'A', 'CSE', 'Backend', 1001, '2025-01-01', '2025-03-01', 2025, 'resume.pdf', 'USER');
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(req)))
+                .andExpect(status().isInternalServerError());
+    }
 
-INSERT INTO internship_batches (batch_code, batch_name, course_name, trainer_id, start_date, end_date, total_seats, available_seats)
-VALUES(1001, 'Java Full Stack', 'Java', 1, '2025-12-01', '2026-03-01', 30, 25);
+    // ---------------------------
+    // LOGIN FAILURE - USER NOT FOUND
+    // ---------------------------
+    @Test
+    void testLogin_UserNotFound() throws Exception {
+        LoginRequest req = new LoginRequest("no@mail.com", "123");
 
-INSERT INTO tasks (id, user_id, description, trainer_id, status, deadline, upload_file)
-VALUES(1, 1, 'Build REST API', 1, 'PENDING', '2025-12-04', 'file.pdf');
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(req)))
+                .andExpect(status().isInternalServerError());
+    }
 
-INSERT INTO attendance (attendance_id, user_id, batch_code, date, present)
-VALUES(1, 1, 1001, '2025-12-03', TRUE);
+    // ---------------------------
+    // CREATE ADMIN SUCCESS
+    // ---------------------------
+    @Test
+    void testCreateAdmin_Success() throws Exception {
+        CreateAdminDto dto = new CreateAdminDto();
+        dto.setUserName("Admin User");
+        dto.setEmail("newadmin@mail.com");
+        dto.setPassword("admin123");
 
-INSERT INTO performance (id, user_id, trainer_id, batch_code, trainer_name, remarks, task_evaluation_score)
-VALUES(1, 1, 1, 1001, 'John Miller', 'Good progress', 90);
+        mockMvc.perform(post("/api/auth/create-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Admin created successfully!"));
+    }
 
-INSERT INTO feedback (id, user_id, user_name, batch_code, trainer_id, trainer_name, feedback, rating)
-VALUES(1, 1, 'Sravya', 1001, 1, 'John Miller', 'Very helpful trainer', 5);
+    // ---------------------------
+    // CREATE ADMIN FAILURE - ADMIN ALREADY EXISTS
+    // ---------------------------
+    @Test
+    void testCreateAdmin_AlreadyExists() throws Exception {
+        CreateAdminDto dto = new CreateAdminDto();
+        dto.setUserName("Test Admin");
+        dto.setEmail("existing@admin.com");
+        dto.setPassword("123");
 
-INSERT INTO stipend (id, user_id, user_name, payment_mode, amount)
-VALUES(1, 1, 'Sravya', 'Cash', 3000.00);
+        mockMvc.perform(post("/api/auth/create-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    // ---------------------------
+    // CREATE ADMIN FAILURE - EMAIL ALREADY IN USE
+    // ---------------------------
+    @Test
+    void testCreateAdmin_EmailAlreadyUsed() throws Exception {
+
+        CreateAdminDto dto = new CreateAdminDto();
+        dto.setUserName("Admin");
+        dto.setEmail("sravya@user.com"); // Already added in data.sql
+        dto.setPassword("123");
+
+        mockMvc.perform(post("/api/auth/create-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+}
