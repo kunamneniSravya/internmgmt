@@ -137,7 +137,6 @@ public interface BatchDao {
 package com.finalproject.internMgmtSystem.repository;
 
 import com.finalproject.internMgmtSystem.model.InternshipBatch;
-import com.finalproject.internMgmtSystem.repository.BatchDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -148,97 +147,115 @@ import java.util.List;
 @Repository
 public class BatchDaoImpl implements BatchDao {
 
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-	private RowMapper<InternshipBatch> mapper = (rs, rowNum) -> {
-		InternshipBatch b = new InternshipBatch();
-		b.setBatchCode(rs.getLong("batch_code"));
-		b.setBatchName(rs.getString("batch_name"));
-		b.setCourseName(rs.getString("course_name"));
-		b.setTrainerId(rs.getLong("trainer_id"));
-		b.setStartDate(rs.getDate("start_date"));
-		b.setEndDate(rs.getDate("end_date"));
-		b.setTotalSeats(rs.getInt("total_seats"));
-		b.setAvailableSeats(rs.getInt("available_seats"));
-		return b;
-	};
+    // Updated RowMapper to include trainerName
+    private RowMapper<InternshipBatch> mapper = (rs, rowNum) -> {
+        InternshipBatch b = new InternshipBatch();
+        b.setBatchCode(rs.getLong("batch_code"));
+        b.setBatchName(rs.getString("batch_name"));
+        b.setCourseName(rs.getString("course_name"));
+        b.setTrainerId(rs.getLong("trainer_id"));
+        b.setTrainerName(rs.getString("trainer_name")); // NEW 👌
+        b.setStartDate(rs.getDate("start_date"));
+        b.setEndDate(rs.getDate("end_date"));
+        b.setTotalSeats(rs.getInt("total_seats"));
+        b.setAvailableSeats(rs.getInt("available_seats"));
+        return b;
+    };
 
-	@Override
-	public InternshipBatch save(InternshipBatch batch) {
-		String sql = """
-				    INSERT INTO internship_batches
-				    (batch_name, course_name, trainer_id, start_date, end_date, total_seats, available_seats)
-				    VALUES (?, ?, ?, ?, ?, ?, ?)
-				""";
+    @Override
+    public InternshipBatch save(InternshipBatch batch) {
+        String sql = """
+                INSERT INTO internship_batches
+                (batch_name, course_name, trainer_id, start_date, end_date, total_seats, available_seats)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
 
-		jdbcTemplate.update(sql, batch.getBatchName(), batch.getCourseName(), batch.getTrainerId(),
-				batch.getStartDate(), batch.getEndDate(), batch.getTotalSeats(), batch.getAvailableSeats());
+        jdbcTemplate.update(sql, batch.getBatchName(), batch.getCourseName(), batch.getTrainerId(),
+                batch.getStartDate(), batch.getEndDate(), batch.getTotalSeats(), batch.getAvailableSeats());
 
-		Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-		batch.setBatchCode(id);
-		return batch;
-	}
+        Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        batch.setBatchCode(id);
+        return batch;
+    }
 
-	@Override
-	public InternshipBatch findById(Long batchCode) {
-		List<InternshipBatch> list = jdbcTemplate.query("SELECT * FROM internship_batches WHERE batch_code = ?", mapper,
-				batchCode);
-		return list.isEmpty() ? null : list.get(0);
-	}
+    @Override
+    public InternshipBatch findById(Long batchCode) {
+        return findByBatchCode(batchCode);
+    }
 
-	@Override
-	public List<InternshipBatch> findAll() {
-		return jdbcTemplate.query("SELECT * FROM internship_batches", mapper);
-	}
+    @Override
+    public List<InternshipBatch> findAll() {
+        String sql = """
+                SELECT b.*, t.name AS trainer_name
+                FROM internship_batches b
+                JOIN trainers t ON b.trainer_id = t.trainer_id
+                """;
+        return jdbcTemplate.query(sql, mapper);
+    }
 
-	@Override
-	public List<InternshipBatch> findByTrainerId(Long trainerId) {
-		return jdbcTemplate.query("SELECT * FROM internship_batches WHERE trainer_id = ?", mapper, trainerId);
-	}
+    @Override
+    public List<InternshipBatch> findByTrainerId(Long trainerId) {
+        String sql = """
+                SELECT b.*, t.name AS trainer_name
+                FROM internship_batches b
+                JOIN trainers t ON b.trainer_id = t.trainer_id
+                WHERE b.trainer_id = ?
+                """;
+        return jdbcTemplate.query(sql, mapper, trainerId);
+    }
 
-	@Override
-	public void update(InternshipBatch batch) {
-		String sql = """
-				    UPDATE internship_batches SET batch_name=?, course_name=?, trainer_id=?, start_date=?,
-				    end_date=?, total_seats=?, available_seats=? WHERE batch_code=?
-				""";
+    @Override
+    public void update(InternshipBatch batch) {
+        String sql = """
+                UPDATE internship_batches SET batch_name=?, course_name=?, trainer_id=?, start_date=?,
+                end_date=?, total_seats=?, available_seats=? WHERE batch_code=?
+                """;
+        jdbcTemplate.update(sql, batch.getBatchName(), batch.getCourseName(), batch.getTrainerId(),
+                batch.getStartDate(), batch.getEndDate(), batch.getTotalSeats(), batch.getAvailableSeats(),
+                batch.getBatchCode());
+    }
 
-		jdbcTemplate.update(sql, batch.getBatchName(), batch.getCourseName(), batch.getTrainerId(),
+    @Override
+    public void delete(Long batchCode) {
+        jdbcTemplate.update("DELETE FROM internship_batches WHERE batch_code = ?", batchCode);
+    }
 
-				batch.getStartDate(), batch.getEndDate(), batch.getTotalSeats(), batch.getAvailableSeats(),
-				batch.getBatchCode());
-	}
+    @Override
+    public InternshipBatch findByName(String batchName) {
+        String sql = """
+                SELECT b.*, t.name AS trainer_name
+                FROM internship_batches b
+                JOIN trainers t ON b.trainer_id = t.trainer_id
+                WHERE b.batch_name = ?
+                """;
+        List<InternshipBatch> list = jdbcTemplate.query(sql, mapper, batchName);
+        return list.isEmpty() ? null : list.get(0);
+    }
 
-	@Override
-	public void delete(Long batchCode) {
-		jdbcTemplate.update("DELETE FROM internship_batches WHERE batch_code = ?", batchCode);
-	}
+    @Override
+    public InternshipBatch findByBatchCode(Long batchCode) {
+        String sql = """
+                SELECT b.*, t.name AS trainer_name
+                FROM internship_batches b
+                JOIN trainers t ON b.trainer_id = t.trainer_id
+                WHERE b.batch_code = ?
+                """;
+        List<InternshipBatch> list = jdbcTemplate.query(sql, mapper, batchCode);
+        return list.isEmpty() ? null : list.get(0);
+    }
 
-	@Override
-	public InternshipBatch findByName(String batchName) {
-		List<InternshipBatch> list = jdbcTemplate.query("SELECT * FROM internship_batches WHERE batch_name = ?", mapper,
-				batchName);
-		return list.isEmpty() ? null : list.get(0);
-	}
-	
-	@Override
-	public InternshipBatch findByBatchCode(Long batchCode) {
-	    List<InternshipBatch> list = jdbcTemplate.query(
-	        "SELECT * FROM internship_batches WHERE batch_code = ?", mapper, batchCode);
-	    return list.isEmpty() ? null : list.get(0);
-	}
-
-	@Override
-	public void decrementAvailableSeats(Long batchCode) {
-	    String sql = """
-	        UPDATE internship_batches 
-	        SET available_seats = available_seats - 1 
-	        WHERE batch_code = ? AND available_seats > 0
-	    """;
-	    jdbcTemplate.update(sql, batchCode);
-	}
-
+    @Override
+    public void decrementAvailableSeats(Long batchCode) {
+        String sql = """
+                UPDATE internship_batches 
+                SET available_seats = available_seats - 1 
+                WHERE batch_code = ? AND available_seats > 0
+                """;
+        jdbcTemplate.update(sql, batchCode);
+    }
 }
 package com.finalproject.internMgmtSystem.repository;
 
@@ -254,11 +271,12 @@ public interface FeedbackDao {
     List<Feedback> findByUserId(Long userId);
 
     List<Feedback> findAll();
+    
+    List<Feedback> findByTrainerId(Long trainerId);
 }
 package com.finalproject.internMgmtSystem.repository;
 
 import com.finalproject.internMgmtSystem.model.Feedback;
-import com.finalproject.internMgmtSystem.repository.FeedbackDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -278,6 +296,7 @@ public class FeedbackDaoImpl implements FeedbackDao {
         f.setUserId(rs.getLong("user_id"));
         f.setUserName(rs.getString("user_name"));
         f.setBatchCode(rs.getLong("batch_code"));
+        f.setTrainerId(rs.getLong("trainer_id")); // ⭐ ADDED
         f.setTrainerName(rs.getString("trainer_name"));
         f.setDate(rs.getTimestamp("date"));
         f.setFeedback(rs.getString("feedback"));
@@ -288,14 +307,15 @@ public class FeedbackDaoImpl implements FeedbackDao {
     @Override
     public Feedback save(Feedback feedback) {
         String sql = """
-            INSERT INTO feedback (user_id, user_name, batch_code, trainer_name, feedback, rating)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO feedback (user_id, user_name, batch_code, trainer_id, trainer_name, feedback, rating)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
         jdbcTemplate.update(sql,
                 feedback.getUserId(),
                 feedback.getUserName(),
                 feedback.getBatchCode(),
+                feedback.getTrainerId(), // ⭐ ADDED
                 feedback.getTrainerName(),
                 feedback.getFeedback(),
                 feedback.getRating()
@@ -304,6 +324,15 @@ public class FeedbackDaoImpl implements FeedbackDao {
         Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         feedback.setId(id);
         return feedback;
+    }
+
+    @Override
+    public List<Feedback> findByTrainerId(Long trainerId) {
+        return jdbcTemplate.query(
+                "SELECT * FROM feedback WHERE trainer_id = ? ORDER BY date DESC",
+                mapper,
+                trainerId
+        );
     }
 
     @Override
@@ -349,12 +378,12 @@ public interface PerformanceDao {
 package com.finalproject.internMgmtSystem.repository;
 
 import com.finalproject.internMgmtSystem.model.Performance;
-import com.finalproject.internMgmtSystem.repository.PerformanceDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Repository
@@ -368,6 +397,8 @@ public class PerformanceDaoImpl implements PerformanceDao {
         p.setId(rs.getLong("id"));
         p.setUserId(rs.getLong("user_id"));
         p.setTrainerId(rs.getLong("trainer_id"));
+        p.setBatchCode(rs.getLong("batch_code"));        // NEW
+        p.setTrainerName(rs.getString("trainer_name"));  // NEW
         p.setRemarks(rs.getString("remarks"));
         p.setTaskEvaluationScore(rs.getInt("task_evaluation_score"));
         p.setCreatedAt(rs.getTimestamp("created_at"));
@@ -375,30 +406,33 @@ public class PerformanceDaoImpl implements PerformanceDao {
     };
 
     @Override
-    public Performance save(Performance performance) {
+    public Performance save(Performance p) {
         String sql = """
-            INSERT INTO performance (user_id, trainer_id, remarks, task_evaluation_score)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO performance 
+            (user_id, trainer_id, batch_code, trainer_name, remarks, task_evaluation_score, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
         """;
 
         jdbcTemplate.update(sql,
-                performance.getUserId(),
-                performance.getTrainerId(),
-                performance.getRemarks(),
-                performance.getTaskEvaluationScore()
+                p.getUserId(),
+                p.getTrainerId(),
+                p.getBatchCode(),
+                p.getTrainerName(),
+                p.getRemarks(),
+                p.getTaskEvaluationScore()
         );
 
         Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        performance.setId(id);
-        return performance;
+        p.setId(id);
+        p.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        return p;
     }
 
     @Override
     public List<Performance> findByUserId(Long userId) {
         return jdbcTemplate.query(
                 "SELECT * FROM performance WHERE user_id = ? ORDER BY created_at DESC",
-                mapper,
-                userId
+                mapper, userId
         );
     }
 
@@ -406,8 +440,7 @@ public class PerformanceDaoImpl implements PerformanceDao {
     public List<Performance> findByTrainerId(Long trainerId) {
         return jdbcTemplate.query(
                 "SELECT * FROM performance WHERE trainer_id = ? ORDER BY created_at DESC",
-                mapper,
-                trainerId
+                mapper, trainerId
         );
     }
 
@@ -461,8 +494,8 @@ public class StipendDaoImpl implements StipendDao {
     @Override
     public Stipend save(Stipend stipend) {
         String sql = """
-            INSERT INTO stipend (user_id, user_name, payment_mode, amount,payment_date)
-            VALUES (?, ?, ?, ?,NOW())
+            INSERT INTO stipend (user_id, user_name, payment_mode, amount, payment_date)
+            VALUES (?, ?, ?, ?, NOW())
         """;
 
         jdbcTemplate.update(sql,
@@ -474,9 +507,11 @@ public class StipendDaoImpl implements StipendDao {
 
         Long id = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         stipend.setId(id);
-        stipend.setPaymentDate(new Timestamp(System.currentTimeMillis()));
+        stipend.setPaymentDate(new Timestamp(System.currentTimeMillis())); // Set date in model
+        
         return stipend;
     }
+
 
     @Override
     public List<Stipend> findByUserId(Long userId) {
