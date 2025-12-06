@@ -1,150 +1,277 @@
 package com.finalproject.internMgmtSystem.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finalproject.internMgmtSystem.dto.CreateAdminDto;
-import com.finalproject.internMgmtSystem.dto.LoginRequest;
-import com.finalproject.internMgmtSystem.exception.UserAlreadyExistsException;
-import com.finalproject.internMgmtSystem.model.User;
-import com.finalproject.internMgmtSystem.repository.UserDao;
-import com.finalproject.internMgmtSystem.service.AuthService;
+import com.finalproject.internMgmtSystem.dto.AttendanceDto;
+import com.finalproject.internMgmtSystem.dto.PerformanceDto;
+import com.finalproject.internMgmtSystem.dto.TaskDto;
+import com.finalproject.internMgmtSystem.dto.UserBatchDto;
+import com.finalproject.internMgmtSystem.model.*;
+import com.finalproject.internMgmtSystem.service.TrainerService;
+
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.*;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.sql.Date;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-class AuthControllerTest {
-
-    private MockMvc mockMvc;
+class TrainerControllerTest {
 
     @Mock
-    private AuthService authService;
-
-    @Mock
-    private UserDao userDao;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    private TrainerService trainerService;
 
     @InjectMocks
-    private AuthController authController;
+    private TrainerController trainerController;
 
+    private MockMvc mockMvc;
     private ObjectMapper mapper = new ObjectMapper();
 
-    private User admin;
-    private User normalUser;
+    private InternshipBatch batch;
+    private Task task;
+    private Attendance attendance;
+    private Performance performance;
+    private Feedback feedback;
+    private UserBatchDto userBatch;
 
     @BeforeEach
-    void setup() {
+    void init() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(trainerController).build();
 
-        admin = new User();
-        admin.setUserId(1L);
-        admin.setUserName("Admin");
-        admin.setEmail("admin@mail.com");
-        admin.setRole("ADMIN");
+        batch = new InternshipBatch();
+        batch.setBatchCode(11L);
+        batch.setBatchName("AI");
 
-        normalUser = new User();
-        normalUser.setUserId(2L);
-        normalUser.setUserName("User");
-        normalUser.setEmail("user@mail.com");
-        normalUser.setRole("USER");
+        task = new Task();
+        task.setTaskId(1L);
+        task.setDescription("Task 1");
+
+        attendance = new Attendance();
+        attendance.setAttendance_id(1L);
+        attendance.setUserId(5L);
+
+        performance = new Performance();
+        performance.setPerformanceId(1L);
+        performance.setUserId(5L);
+
+        feedback = new Feedback();
+        feedback.setFeedbackId(1L);
+        feedback.setFeedback("Good");
+
+        userBatch = new UserBatchDto();
+        userBatch.setUserId(100L);
+        userBatch.setUserName("User");
     }
 
     @Test
-    void testLogin_Success() throws Exception {
-        LoginRequest req = new LoginRequest("user@mail.com", "123");
-        when(authService.login(any(LoginRequest.class))).thenReturn("TOKEN123");
+    void testGetBatches_Success() throws Exception {
+        when(trainerService.getBatches(10L)).thenReturn(List.of(batch));
 
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(req)))
+        mockMvc.perform(get("/api/trainer/batches/10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("TOKEN123"));
+                .andExpect(jsonPath("$.size()").value(1));
 
-        verify(authService).login(any(LoginRequest.class));
+        verify(trainerService).getBatches(10L);
     }
 
     @Test
-    void testLogin_Failure() throws Exception {
-        LoginRequest req = new LoginRequest("user@mail.com", "wrong");
-        when(authService.login(any(LoginRequest.class))).thenThrow(new RuntimeException());
+    void testGetBatches_Failure() throws Exception {
+        when(trainerService.getBatches(10L)).thenThrow(new RuntimeException());
 
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(req)))
+        mockMvc.perform(get("/api/trainer/batches/10"))
                 .andExpect(status().isInternalServerError());
-
-        verify(authService).login(any(LoginRequest.class));
     }
 
     @Test
-    void testCreateAdmin_Success() throws Exception {
-        CreateAdminDto dto = new CreateAdminDto();
-        dto.setUserName("Admin");
-        dto.setEmail("newadmin@mail.com");
-        dto.setPassword("pass");
+    void testAddTask_Success() throws Exception {
+        TaskDto dto = new TaskDto(1L, "desc", 10L, "PENDING", Date.valueOf("2025-01-01"), null);
+        when(trainerService.addTask(any(TaskDto.class))).thenReturn(task);
 
-        when(userDao.findAll()).thenReturn(List.of(normalUser));
-        when(userDao.findByEmail("newadmin@mail.com")).thenReturn(null);
-        when(passwordEncoder.encode("pass")).thenReturn("ENC_PASS");
-
-        mockMvc.perform(post("/api/auth/create-admin")
+        mockMvc.perform(post("/api/trainer/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Admin created successfully!"));
+                .andExpect(jsonPath("$.taskId").value(1));
 
-        verify(userDao).save(any(User.class));
+        verify(trainerService).addTask(any(TaskDto.class));
     }
 
     @Test
-    void testCreateAdmin_Failure_AdminAlreadyExists() throws Exception {
-        CreateAdminDto dto = new CreateAdminDto();
-        dto.setUserName("Admin1");
-        dto.setEmail("admin@mail.com");
-        dto.setPassword("pass");
+    void testAddTask_Failure() throws Exception {
+        TaskDto dto = new TaskDto(1L, "desc", 10L, "PENDING", Date.valueOf("2025-01-01"), null);
+        when(trainerService.addTask(any(TaskDto.class))).thenThrow(new RuntimeException());
 
-        when(userDao.findAll()).thenReturn(List.of(admin));
-
-        mockMvc.perform(post("/api/auth/create-admin")
+        mockMvc.perform(post("/api/trainer/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-
-        verify(userDao, never()).save(any(User.class));
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
-    void testCreateAdmin_Failure_EmailExists() throws Exception {
-        CreateAdminDto dto = new CreateAdminDto();
-        dto.setUserName("NewAdmin");
-        dto.setEmail("user@mail.com");
-        dto.setPassword("pass");
+    void testGetTasksByTrainerId_Success() throws Exception {
+        when(trainerService.getTasksByTrainerId(10L)).thenReturn(List.of(task));
 
-        when(userDao.findAll()).thenReturn(List.of(normalUser));
-        when(userDao.findByEmail("user@mail.com")).thenReturn(normalUser);
+        mockMvc.perform(get("/api/trainer/tasks/10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
 
-        mockMvc.perform(post("/api/auth/create-admin")
+        verify(trainerService).getTasksByTrainerId(10L);
+    }
+
+    @Test
+    void testGetTasksByTrainerId_Failure() throws Exception {
+        when(trainerService.getTasksByTrainerId(10L)).thenThrow(new RuntimeException());
+
+        mockMvc.perform(get("/api/trainer/tasks/10"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testUpdateTask_Success() throws Exception {
+        TaskDto dto = new TaskDto(1L, "desc", 10L, "DONE", Date.valueOf("2025-01-01"), null);
+
+        mockMvc.perform(put("/api/trainer/tasks/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(content().string("Task updated successfully"));
 
-        verify(userDao, never()).save(any(User.class));
+        verify(trainerService).updateTask(any(TaskDto.class), eq(1L));
+    }
+
+    @Test
+    void testUpdateTask_Failure() throws Exception {
+        TaskDto dto = new TaskDto(1L, "desc", 10L, "DONE", Date.valueOf("2025-01-01"), null);
+        doThrow(new RuntimeException()).when(trainerService).updateTask(any(TaskDto.class), eq(1L));
+
+        mockMvc.perform(put("/api/trainer/tasks/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testDeleteTask_Success() throws Exception {
+        mockMvc.perform(delete("/api/trainer/tasks/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Task deleted successfully"));
+
+        verify(trainerService).deleteTask(1L);
+    }
+
+    @Test
+    void testDeleteTask_Failure() throws Exception {
+        doThrow(new RuntimeException()).when(trainerService).deleteTask(1L);
+
+        mockMvc.perform(delete("/api/trainer/tasks/1"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testMarkAttendance_Success() throws Exception {
+        AttendanceDto dto = new AttendanceDto(1L, 11L, Date.valueOf("2025-01-01"), true);
+        when(trainerService.markAttendance(any())).thenReturn(attendance);
+
+        mockMvc.perform(post("/api/trainer/attendance")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.attendance_id").value(1));
+
+        verify(trainerService).markAttendance(any());
+    }
+
+    @Test
+    void testMarkAttendance_Failure() throws Exception {
+        AttendanceDto dto = new AttendanceDto(1L, 11L, Date.valueOf("2025-01-01"), true);
+        when(trainerService.markAttendance(any())).thenThrow(new RuntimeException());
+
+        mockMvc.perform(post("/api/trainer/attendance")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testUpdatePerformance_Success() throws Exception {
+        PerformanceDto dto = new PerformanceDto(1L, 10L, 11L, "Trainer", "Good", 90);
+        when(trainerService.updatePerformance(any())).thenReturn(performance);
+
+        mockMvc.perform(post("/api/trainer/performance")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isOk());
+
+        verify(trainerService).updatePerformance(any());
+    }
+
+    @Test
+    void testUpdatePerformance_Failure() throws Exception {
+        PerformanceDto dto = new PerformanceDto(1L, 10L, 11L, "Trainer", "Good", 90);
+        when(trainerService.updatePerformance(any())).thenThrow(new RuntimeException());
+
+        mockMvc.perform(post("/api/trainer/performance")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetFeedbackByName() throws Exception {
+        when(trainerService.viewFeedback("John")).thenReturn(List.of(feedback));
+
+        mockMvc.perform(get("/api/trainer/feedback/name/John"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
+
+        verify(trainerService).viewFeedback("John");
+    }
+
+    @Test
+    void testGetFeedbackByTrainerId() throws Exception {
+        when(trainerService.viewFeedbackByTrainerId(10L)).thenReturn(List.of(feedback));
+
+        mockMvc.perform(get("/api/trainer/feedback/id/10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
+
+        verify(trainerService).viewFeedbackByTrainerId(10L);
+    }
+
+    @Test
+    void testGetPerformanceByTrainerId() throws Exception {
+        when(trainerService.getPerformanceByTrainerId(10L)).thenReturn(List.of(performance));
+
+        mockMvc.perform(get("/api/trainer/performance/10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
+
+        verify(trainerService).getPerformanceByTrainerId(10L);
+    }
+
+    @Test
+    void testGetUsersByTrainerId() throws Exception {
+        when(trainerService.getUsersByTrainerId(10)).thenReturn(List.of(userBatch));
+
+        mockMvc.perform(get("/api/trainer/UserBatch/10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
+
+        verify(trainerService).getUsersByTrainerId(10);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"user@mail.com", "admin@mail.com", "x@y.com"})
-    void emailParameterizedTest(String email) {
-        Assertions.assertTrue(email.contains("@"));
+    @ValueSource(longs = {1L, 5L, 10L})
+    void testParameterizedTrainerIds(long id) {
+        assertTrue(id > 0);
     }
 
     @Disabled("skip")
