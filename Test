@@ -1,17 +1,39 @@
-INSERT INTO trainers (name, email, password, contact, experience, skills, bio, role)
-VALUES ('Seed Trainer', 'seed@trainer.com', 'pass', '999', '3y', 'Java', 'test-bio', 'TRAINER');
+-- Trainers
+INSERT INTO trainers (trainer_id, name, email, password, contact, experience, skills, bio, role)
+VALUES 
+(1, 'John Miller', 'john@trainer.com', 'pass123', '9876543210', '5 Years', 'Java, Spring', 'Senior Trainer', 'TRAINER');
 
-INSERT INTO users (user_name, email, password, contact_no, address, college_name, grade, major, team, batch_code, graduating_year, resume, role)
-VALUES ('Seed User', 'seed@user.com', 'pass', '888', 'test address', 'Test College', 'A', 'CSE', 'Team1', 101, 2025, 'resume.pdf', 'USER');
+-- Users
+INSERT INTO users (user_id, user_name, email, password, dob, contact_no, address, college_name, grade, major, team, batch_code, start_date, end_date, graduating_year, resume, role)
+VALUES
+(1, 'Sravya', 'sravya@user.com', 'pass123', '2002-05-10', '9876543210', 'Chennai', 'Vel Tech', 'A', 'CSE', 'Backend', 1001, '2025-01-01', '2025-03-01', 2025, 'resume.pdf', 'USER');
 
-INSERT INTO internship_batches (batch_name, course_name, trainer_id, start_date, end_date, total_seats, available_seats)
-VALUES ('Seed Batch', 'Java', 1, '2025-01-01', '2025-03-01', 30, 20);
+-- Batches
+INSERT INTO internship_batches (batch_code, batch_name, course_name, trainer_id, start_date, end_date, total_seats, available_seats)
+VALUES
+(1001, 'Java Full Stack', 'Java', 1, '2025-01-01', '2025-03-01', 30, 25);
 
-INSERT INTO stipend (user_id, user_name, payment_mode, amount)
-VALUES (1, 'Seed User', 'Cash', 2000.0);
+-- Tasks
+INSERT INTO tasks (task_id, user_id, description, trainer_id, status, deadline, upload_file)
+VALUES
+(1, 1, 'Build REST API', 1, 'PENDING', '2025-02-01', null);
 
-INSERT INTO performance (user_id, trainer_id, batch_code, trainer_name, remarks, task_evaluation_score)
-VALUES (1, 1, 101, 'Seed Trainer', 'Good', 90);
+-- Attendance
+INSERT INTO attendance (attendance_id, user_id, batch_code, date, present)
+VALUES
+(1, 1, 1001, '2025-01-15', TRUE);
 
-INSERT INTO attendance (user_id, batch_code, date, present)
-VALUES (1, 101, '2025-01-10', TRUE);
+-- Performance
+INSERT INTO performance (performance_id, user_id, trainer_id, batch_code, trainer_name, remarks, task_evaluation_score)
+VALUES
+(1, 1, 1, 1001, 'John Miller', 'Good progress', 90);
+
+-- Feedback
+INSERT INTO feedback (feedback_id, user_id, user_name, batch_code, trainer_id, trainer_name, feedback, rating)
+VALUES
+(1, 1, 'Sravya', 1001, 1, 'John Miller', 'Very helpful trainer', 5);
+
+-- Stipend
+INSERT INTO stipend (id, user_id, user_name, payment_mode, amount)
+VALUES
+(1, 1, 'Sravya', 'Cash', 3000.00);
