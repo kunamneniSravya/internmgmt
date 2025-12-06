@@ -9,192 +9,223 @@ import java.util.List;
 
 import org.junit.jupiter.api.*;
 import org.mockito.*;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.finalproject.internMgmtSystem.dto.*;
 import com.finalproject.internMgmtSystem.exception.*;
 import com.finalproject.internMgmtSystem.model.*;
 import com.finalproject.internMgmtSystem.repository.*;
-import com.finalproject.internMgmtSystem.util.EmailUtil;
 
-public class AdminServiceTest {
-
-    @Mock
-    private TrainerDao trainerDao;
+public class UserServiceTest {
 
     @Mock
     private UserDao userDao;
 
     @Mock
-    private BatchDao batchDao;
+    private TaskDao taskDao;
+
+    @Mock
+    private PerformanceDao performanceDao;
 
     @Mock
     private StipendDao stipendDao;
 
     @Mock
-    private PasswordEncoder encoder;
+    private BatchDao batchDao;
 
     @Mock
-    private EmailUtil emailUtil;
+    private FeedbackDao feedbackDao;
+
+    @Mock
+    private AttendanceDao attendanceDao;
+
+    @Mock
+    private PasswordEncoder encoder;
 
     @InjectMocks
-    private AdminService adminService;
+    private UserService userService;
 
-    private Trainer trainer;
     private User user;
     private InternshipBatch batch;
+    private Task task;
+    private Performance performance;
     private Stipend stipend;
+    private Attendance attendance;
+    private Feedback feedback;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        trainer = new Trainer();
-        trainer.setTrainerId(1L);
-        trainer.setEmail("trainer@mail.com");
 
         user = new User();
         user.setUserId(1L);
-        user.setEmail("abc@mail.com");
+        user.setEmail("u@mail.com");
 
         batch = new InternshipBatch();
         batch.setBatchCode(1L);
+        batch.setAvailableSeats(10);
 
+        task = new Task();
+        performance = new Performance();
         stipend = new Stipend();
-        stipend.setId(1L);
+        attendance = new Attendance();
+        feedback = new Feedback();
     }
 
     @Test
-    void testRegisterTrainer_Success() {
-        RegisterTrainerDto dto = new RegisterTrainerDto();
-        dto.setEmail("trainer@mail.com");
-        dto.setPassword("123");
-        dto.setName("Trainer");
-        dto.setContact("111");
-        dto.setExperience("2yrs");
-        dto.setSkills("Java");
-        dto.setBio("bio");
+    void testRegisterUser_Success() {
+        RegisterUserDto dto = new RegisterUserDto();
+        dto.setUserName("User");
+        dto.setEmail("u@mail.com");
+        dto.setPassword("pass");
+        dto.setDob(new Date(System.currentTimeMillis()));
+        dto.setContactNo("1111");
+        dto.setAddress("ABC");
+        dto.setCollegeName("XYZ");
+        dto.setGrade("A");
+        dto.setMajor("CSE");
+        dto.setTeam("Team1");
+        dto.setBatchCode(1L);
+        dto.setStartDate(new Date(System.currentTimeMillis()));
+        dto.setEndDate(new Date(System.currentTimeMillis()));
+        dto.setGraduatingYear(2025);
+        dto.setResume("resume.pdf");
 
-        when(trainerDao.findByEmail("trainer@mail.com")).thenReturn(null);
-        when(encoder.encode("123")).thenReturn("encoded");
-        when(trainerDao.save(any())).thenReturn(trainer);
+        when(userDao.findByEmail("u@mail.com")).thenReturn(null);
+        when(batchDao.findByBatchCode(1L)).thenReturn(batch);
+        when(encoder.encode("pass")).thenReturn("encoded");
+        when(userDao.save(any())).thenReturn(user);
 
-        Trainer saved = adminService.registerTrainer(dto);
+        User saved = userService.registerUser(dto);
 
         assertNotNull(saved);
-        verify(trainerDao).findByEmail("trainer@mail.com");
-        verify(trainerDao).save(any());
-        verify(emailUtil).sendEmail(anyString(), anyString(), anyString());
+        verify(userDao).findByEmail("u@mail.com");
+        verify(batchDao).findByBatchCode(1L);
+        verify(batchDao).decrementAvailableSeats(1L);
+        verify(userDao).save(any());
     }
 
     @Test
-    void testRegisterTrainer_EmailAlreadyExists() {
-        RegisterTrainerDto dto = new RegisterTrainerDto();
-        dto.setEmail("trainer@mail.com");
+    void testRegisterUser_EmailExists() {
+        RegisterUserDto dto = new RegisterUserDto();
+        dto.setEmail("u@mail.com");
 
-        when(trainerDao.findByEmail("trainer@mail.com")).thenReturn(trainer);
+        when(userDao.findByEmail("u@mail.com")).thenReturn(user);
 
         assertThrows(UserAlreadyExistsException.class,
-                () -> adminService.registerTrainer(dto));
+                () -> userService.registerUser(dto));
 
-        verify(trainerDao).findByEmail("trainer@mail.com");
+        verify(userDao).findByEmail("u@mail.com");
     }
 
     @Test
-    void testCreateBatch_Success() {
-        BatchDto dto = new BatchDto(
-                "Batch A", "Java", 1L,
-                new Date(System.currentTimeMillis()),
-                new Date(System.currentTimeMillis()),
-                10, 10);
+    void testRegisterUser_BatchNotFound() {
+        RegisterUserDto dto = new RegisterUserDto();
+        dto.setEmail("u@mail.com");
+        dto.setBatchCode(10L);
 
-        when(batchDao.save(any())).thenReturn(batch);
-
-        InternshipBatch saved = adminService.createBatch(dto);
-
-        assertNotNull(saved);
-        verify(batchDao).save(any());
-    }
-
-    @Test
-    void testCreateBatch_Failure() {
-        BatchDto dto = new BatchDto(
-                "Batch A", "Java", 1L,
-                new Date(System.currentTimeMillis()),
-                new Date(System.currentTimeMillis()),
-                10, 10);
-
-        when(batchDao.save(any())).thenThrow(new RuntimeException("DB error"));
-
-        assertThrows(RuntimeException.class, () -> adminService.createBatch(dto));
-        verify(batchDao).save(any());
-    }
-
-    @Test
-    void testGiveStipend_Success() {
-        StipendDto dto = new StipendDto(1L, "User", "BANK", 2000.0);
-
-        when(userDao.findById(1L)).thenReturn(user);
-        when(stipendDao.save(any())).thenReturn(stipend);
-
-        Stipend saved = adminService.giveStipend(dto);
-
-        assertNotNull(saved);
-        verify(userDao).findById(1L);
-        verify(stipendDao).save(any());
-    }
-
-    @Test
-    void testGiveStipend_UserNotFound() {
-        StipendDto dto = new StipendDto(10L, "X", "BANK", 1000.0);
-
-        when(userDao.findById(10L)).thenReturn(null);
+        when(userDao.findByEmail("u@mail.com")).thenReturn(null);
+        when(batchDao.findByBatchCode(10L)).thenReturn(null);
 
         assertThrows(ResourceNotFoundException.class,
-                () -> adminService.giveStipend(dto));
+                () -> userService.registerUser(dto));
 
-        verify(userDao).findById(10L);
+        verify(batchDao).findByBatchCode(10L);
     }
 
     @Test
-    void testGetAllUsers() {
-        when(userDao.findAll()).thenReturn(Arrays.asList(user));
+    void testRegisterUser_NoAvailableSeats() {
+        RegisterUserDto dto = new RegisterUserDto();
+        dto.setEmail("u@mail.com");
+        dto.setBatchCode(1L);
 
-        List<User> list = adminService.getAllUsers();
+        batch.setAvailableSeats(0);
+
+        when(userDao.findByEmail("u@mail.com")).thenReturn(null);
+        when(batchDao.findByBatchCode(1L)).thenReturn(batch);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> userService.registerUser(dto));
+
+        verify(batchDao).findByBatchCode(1L);
+    }
+
+    @Test
+    void testGetTasks_Success() {
+        when(taskDao.findByUserId(1L)).thenReturn(Arrays.asList(task));
+
+        List<Task> list = userService.getTasks(1L);
 
         assertEquals(1, list.size());
-        verify(userDao).findAll();
+        verify(taskDao).findByUserId(1L);
     }
 
     @Test
-    void testGetAllUsers_Empty() {
-        when(userDao.findAll()).thenReturn(List.of());
+    void testGetPerformance_Success() {
+        when(performanceDao.findByUserId(1L)).thenReturn(Arrays.asList(performance));
 
-        List<User> list = adminService.getAllUsers();
-
-        assertTrue(list.isEmpty());
-        verify(userDao).findAll();
-    }
-
-    @Test
-    void testGetAllTrainers() {
-        when(trainerDao.findAll()).thenReturn(Arrays.asList(trainer));
-
-        List<Trainer> list = adminService.getAllTrainers();
+        List<Performance> list = userService.getPerformance(1L);
 
         assertEquals(1, list.size());
-        verify(trainerDao).findAll();
+        verify(performanceDao).findByUserId(1L);
     }
 
     @Test
-    void testGetAllTrainers_Empty() {
-        when(trainerDao.findAll()).thenReturn(List.of());
+    void testGetStipends_Success() {
+        when(stipendDao.findByUserId(1L)).thenReturn(Arrays.asList(stipend));
 
-        List<Trainer> list = adminService.getAllTrainers();
+        List<Stipend> list = userService.getStipendHistory(1L);
 
-        assertTrue(list.isEmpty());
-        verify(trainerDao).findAll();
+        assertEquals(1, list.size());
+        verify(stipendDao).findByUserId(1L);
     }
 
     @Test
-    void testGetAllBatches() {
-        when(batchDao
+    void testGetBatchDetails_Success() {
+        when(batchDao.findById(1L)).thenReturn(batch);
+
+        InternshipBatch result = userService.getBatchDetails(1L);
+
+        assertNotNull(result);
+        verify(batchDao).findById(1L);
+    }
+
+    @Test
+    void testGetBatchDetails_NotFound() {
+        when(batchDao.findById(1L)).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> userService.getBatchDetails(1L));
+
+        verify(batchDao).findById(1L);
+    }
+
+    @Test
+    void testSubmitFeedback_Success() {
+        FeedbackDto dto = new FeedbackDto();
+        dto.setUserId(1L);
+        dto.setBatchCode(1L);
+        dto.setTrainerName("Trainer");
+        dto.setUserName("User");
+        dto.setRating(5);
+        dto.setFeedback("Good");
+
+        when(feedbackDao.save(any())).thenReturn(feedback);
+
+        Feedback saved = userService.submitFeedback(dto);
+
+        assertNotNull(saved);
+        verify(feedbackDao).save(any());
+    }
+
+    @Test
+    void testGetAttendance_Success() {
+        when(attendanceDao.findByUserId(1L)).thenReturn(Arrays.asList(attendance));
+
+        List<Attendance> list = userService.getAttendance(1L);
+
+        assertEquals(1, list.size());
+        verify(attendanceDao).findByUserId(1L);
+    }
+}
