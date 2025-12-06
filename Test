@@ -1,12 +1,11 @@
 package com.finalproject.internMgmtSystem.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finalproject.internMgmtSystem.dto.AttendanceDto;
-import com.finalproject.internMgmtSystem.dto.PerformanceDto;
-import com.finalproject.internMgmtSystem.dto.TaskDto;
-import com.finalproject.internMgmtSystem.dto.UserBatchDto;
+import com.finalproject.internMgmtSystem.dto.FeedbackDto;
+import com.finalproject.internMgmtSystem.dto.RegisterUserDto;
 import com.finalproject.internMgmtSystem.model.*;
-import com.finalproject.internMgmtSystem.service.TrainerService;
+import com.finalproject.internMgmtSystem.repository.BatchDao;
+import com.finalproject.internMgmtSystem.service.UserService;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,254 +22,245 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-class TrainerControllerTest {
+class UserControllerTest {
 
     @Mock
-    private TrainerService trainerService;
+    private UserService userService;
+
+    @Mock
+    private BatchDao batchDao;
 
     @InjectMocks
-    private TrainerController trainerController;
+    private UserController userController;
 
     private MockMvc mockMvc;
     private ObjectMapper mapper = new ObjectMapper();
 
-    private InternshipBatch batch;
+    private User user;
     private Task task;
-    private Attendance attendance;
     private Performance performance;
+    private Stipend stipend;
+    private Attendance attendance;
+    private InternshipBatch batch;
     private Feedback feedback;
-    private UserBatchDto userBatch;
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(trainerController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+
+        user = new User();
+        user.setUserId(1L);
+        user.setUserName("User1");
+
+        task = new Task();
+        task.setTaskId(1L);
+        task.setDescription("Task");
+
+        performance = new Performance();
+        performance.setPerformanceId(1L);
+
+        stipend = new Stipend();
+        stipend.setId(1L);
+        stipend.setAmount(2000.0);
+
+        attendance = new Attendance();
+        attendance.setAttendance_id(1L);
 
         batch = new InternshipBatch();
         batch.setBatchCode(11L);
         batch.setBatchName("AI");
 
-        task = new Task();
-        task.setTaskId(1L);
-        task.setDescription("Task 1");
-
-        attendance = new Attendance();
-        attendance.setAttendance_id(1L);
-        attendance.setUserId(5L);
-
-        performance = new Performance();
-        performance.setPerformanceId(1L);
-        performance.setUserId(5L);
-
         feedback = new Feedback();
         feedback.setFeedbackId(1L);
         feedback.setFeedback("Good");
-
-        userBatch = new UserBatchDto();
-        userBatch.setUserId(100L);
-        userBatch.setUserName("User");
     }
 
     @Test
-    void testGetBatches_Success() throws Exception {
-        when(trainerService.getBatches(10L)).thenReturn(List.of(batch));
+    void testRegisterUser_Success() throws Exception {
+        RegisterUserDto dto = new RegisterUserDto(
+                "User1", "u@mail.com", "123",
+                Date.valueOf("2000-01-01"), "123", "Hyd", "College", "A",
+                "CSE", "TeamA", 11L,
+                Date.valueOf("2025-01-01"), Date.valueOf("2025-12-01"),
+                2025, "resume.pdf", null
+        );
 
-        mockMvc.perform(get("/api/trainer/batches/10"))
+        when(userService.registerUser(any())).thenReturn(user);
+
+        mockMvc.perform(post("/api/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1));
+
+        verify(userService).registerUser(any());
+    }
+
+    @Test
+    void testRegisterUser_Failure() throws Exception {
+        RegisterUserDto dto = new RegisterUserDto(
+                "User1", "u@mail.com", "123",
+                Date.valueOf("2000-01-01"), "123", "Hyd", "College", "A",
+                "CSE", "TeamA", 11L,
+                Date.valueOf("2025-01-01"), Date.valueOf("2025-12-01"),
+                2025, "resume.pdf", null
+        );
+
+        when(userService.registerUser(any())).thenThrow(new RuntimeException());
+
+        mockMvc.perform(post("/api/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetTasks_Success() throws Exception {
+        when(userService.getTasks(1L)).thenReturn(List.of(task));
+
+        mockMvc.perform(get("/api/user/1/tasks"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1));
-
-        verify(trainerService).getBatches(10L);
     }
 
     @Test
-    void testGetBatches_Failure() throws Exception {
-        when(trainerService.getBatches(10L)).thenThrow(new RuntimeException());
+    void testGetTasks_Failure() throws Exception {
+        when(userService.getTasks(1L)).thenThrow(new RuntimeException());
 
-        mockMvc.perform(get("/api/trainer/batches/10"))
+        mockMvc.perform(get("/api/user/1/tasks"))
                 .andExpect(status().isInternalServerError());
     }
 
     @Test
-    void testAddTask_Success() throws Exception {
-        TaskDto dto = new TaskDto(1L, "desc", 10L, "PENDING", Date.valueOf("2025-01-01"), null);
-        when(trainerService.addTask(any(TaskDto.class))).thenReturn(task);
+    void testGetPerformance_Success() throws Exception {
+        when(userService.getPerformance(1L)).thenReturn(List.of(performance));
 
-        mockMvc.perform(post("/api/trainer/tasks")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.taskId").value(1));
-
-        verify(trainerService).addTask(any(TaskDto.class));
-    }
-
-    @Test
-    void testAddTask_Failure() throws Exception {
-        TaskDto dto = new TaskDto(1L, "desc", 10L, "PENDING", Date.valueOf("2025-01-01"), null);
-        when(trainerService.addTask(any(TaskDto.class))).thenThrow(new RuntimeException());
-
-        mockMvc.perform(post("/api/trainer/tasks")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void testGetTasksByTrainerId_Success() throws Exception {
-        when(trainerService.getTasksByTrainerId(10L)).thenReturn(List.of(task));
-
-        mockMvc.perform(get("/api/trainer/tasks/10"))
+        mockMvc.perform(get("/api/user/1/performance"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1));
-
-        verify(trainerService).getTasksByTrainerId(10L);
     }
 
     @Test
-    void testGetTasksByTrainerId_Failure() throws Exception {
-        when(trainerService.getTasksByTrainerId(10L)).thenThrow(new RuntimeException());
+    void testGetPerformance_Failure() throws Exception {
+        when(userService.getPerformance(1L)).thenThrow(new RuntimeException());
 
-        mockMvc.perform(get("/api/trainer/tasks/10"))
+        mockMvc.perform(get("/api/user/1/performance"))
                 .andExpect(status().isInternalServerError());
     }
 
     @Test
-    void testUpdateTask_Success() throws Exception {
-        TaskDto dto = new TaskDto(1L, "desc", 10L, "DONE", Date.valueOf("2025-01-01"), null);
+    void testGetStipends_Success() throws Exception {
+        when(userService.getStipendHistory(1L)).thenReturn(List.of(stipend));
 
-        mockMvc.perform(put("/api/trainer/tasks/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Task updated successfully"));
-
-        verify(trainerService).updateTask(any(TaskDto.class), eq(1L));
-    }
-
-    @Test
-    void testUpdateTask_Failure() throws Exception {
-        TaskDto dto = new TaskDto(1L, "desc", 10L, "DONE", Date.valueOf("2025-01-01"), null);
-        doThrow(new RuntimeException()).when(trainerService).updateTask(any(TaskDto.class), eq(1L));
-
-        mockMvc.perform(put("/api/trainer/tasks/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void testDeleteTask_Success() throws Exception {
-        mockMvc.perform(delete("/api/trainer/tasks/1"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Task deleted successfully"));
-
-        verify(trainerService).deleteTask(1L);
-    }
-
-    @Test
-    void testDeleteTask_Failure() throws Exception {
-        doThrow(new RuntimeException()).when(trainerService).deleteTask(1L);
-
-        mockMvc.perform(delete("/api/trainer/tasks/1"))
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void testMarkAttendance_Success() throws Exception {
-        AttendanceDto dto = new AttendanceDto(1L, 11L, Date.valueOf("2025-01-01"), true);
-        when(trainerService.markAttendance(any())).thenReturn(attendance);
-
-        mockMvc.perform(post("/api/trainer/attendance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.attendance_id").value(1));
-
-        verify(trainerService).markAttendance(any());
-    }
-
-    @Test
-    void testMarkAttendance_Failure() throws Exception {
-        AttendanceDto dto = new AttendanceDto(1L, 11L, Date.valueOf("2025-01-01"), true);
-        when(trainerService.markAttendance(any())).thenThrow(new RuntimeException());
-
-        mockMvc.perform(post("/api/trainer/attendance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void testUpdatePerformance_Success() throws Exception {
-        PerformanceDto dto = new PerformanceDto(1L, 10L, 11L, "Trainer", "Good", 90);
-        when(trainerService.updatePerformance(any())).thenReturn(performance);
-
-        mockMvc.perform(post("/api/trainer/performance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isOk());
-
-        verify(trainerService).updatePerformance(any());
-    }
-
-    @Test
-    void testUpdatePerformance_Failure() throws Exception {
-        PerformanceDto dto = new PerformanceDto(1L, 10L, 11L, "Trainer", "Good", 90);
-        when(trainerService.updatePerformance(any())).thenThrow(new RuntimeException());
-
-        mockMvc.perform(post("/api/trainer/performance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isInternalServerError());
-    }
-
-    @Test
-    void testGetFeedbackByName() throws Exception {
-        when(trainerService.viewFeedback("John")).thenReturn(List.of(feedback));
-
-        mockMvc.perform(get("/api/trainer/feedback/name/John"))
+        mockMvc.perform(get("/api/user/1/stipends"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1));
-
-        verify(trainerService).viewFeedback("John");
     }
 
     @Test
-    void testGetFeedbackByTrainerId() throws Exception {
-        when(trainerService.viewFeedbackByTrainerId(10L)).thenReturn(List.of(feedback));
+    void testGetStipends_Failure() throws Exception {
+        when(userService.getStipendHistory(1L)).thenThrow(new RuntimeException());
 
-        mockMvc.perform(get("/api/trainer/feedback/id/10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
-
-        verify(trainerService).viewFeedbackByTrainerId(10L);
+        mockMvc.perform(get("/api/user/1/stipends"))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
-    void testGetPerformanceByTrainerId() throws Exception {
-        when(trainerService.getPerformanceByTrainerId(10L)).thenReturn(List.of(performance));
+    void testGetBatchDetails_Success() throws Exception {
+        when(userService.getBatchDetails(11L)).thenReturn(batch);
 
-        mockMvc.perform(get("/api/trainer/performance/10"))
+        mockMvc.perform(get("/api/user/batch/11"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
-
-        verify(trainerService).getPerformanceByTrainerId(10L);
+                .andExpect(jsonPath("$.batchCode").value(11));
     }
 
     @Test
-    void testGetUsersByTrainerId() throws Exception {
-        when(trainerService.getUsersByTrainerId(10)).thenReturn(List.of(userBatch));
+    void testGetBatchDetails_Failure() throws Exception {
+        when(userService.getBatchDetails(11L)).thenThrow(new RuntimeException());
 
-        mockMvc.perform(get("/api/trainer/UserBatch/10"))
+        mockMvc.perform(get("/api/user/batch/11"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testSubmitFeedback_Success() throws Exception {
+        FeedbackDto dto = new FeedbackDto();
+        dto.setUserId(1L);
+        dto.setBatchCode(11L);
+        dto.setTrainerId(10L);
+        dto.setUserName("User1");
+        dto.setTrainerName("Trainer A");
+        dto.setFeedback("Good");
+        dto.setRating(5);
+
+        when(userService.submitFeedback(any())).thenReturn(feedback);
+
+        mockMvc.perform(post("/api/user/feedback")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.feedbackId").value(1));
+
+        verify(userService).submitFeedback(any());
+    }
+
+    @Test
+    void testSubmitFeedback_Failure() throws Exception {
+        FeedbackDto dto = new FeedbackDto();
+        dto.setUserId(1L);
+        dto.setBatchCode(11L);
+        dto.setTrainerId(10L);
+        dto.setUserName("User1");
+        dto.setTrainerName("Trainer A");
+        dto.setFeedback("Good");
+        dto.setRating(5);
+
+        when(userService.submitFeedback(any())).thenThrow(new RuntimeException());
+
+        mockMvc.perform(post("/api/user/feedback")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetAttendance_Success() throws Exception {
+        when(userService.getAttendance(1L)).thenReturn(List.of(attendance));
+
+        mockMvc.perform(get("/api/user/1/attendance"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1));
+    }
 
-        verify(trainerService).getUsersByTrainerId(10);
+    @Test
+    void testGetAttendance_Failure() throws Exception {
+        when(userService.getAttendance(1L)).thenThrow(new RuntimeException());
+
+        mockMvc.perform(get("/api/user/1/attendance"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testGetAllBatchesPublic_Success() throws Exception {
+        when(batchDao.findAll()).thenReturn(List.of(batch));
+
+        mockMvc.perform(get("/api/user/batches"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
+    }
+
+    @Test
+    void testGetAllBatchesPublic_Failure() throws Exception {
+        when(batchDao.findAll()).thenThrow(new RuntimeException());
+
+        mockMvc.perform(get("/api/user/batches"))
+                .andExpect(status().isInternalServerError());
     }
 
     @ParameterizedTest
     @ValueSource(longs = {1L, 5L, 10L})
-    void testParameterizedTrainerIds(long id) {
+    void testParameterizedUserIds(long id) {
         assertTrue(id > 0);
     }
 
