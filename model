@@ -46,6 +46,7 @@ public class Feedback {
     private Long userId;
     private String userName;
     private Long batchCode;
+    private Long trainerId; // ⭐ ADDED
     private String trainerName;
     private Timestamp date;
     private String feedback;
@@ -53,12 +54,14 @@ public class Feedback {
 
     public Feedback() {}
 
-    public Feedback(Long id, Long userId, String userName, Long batchCode, String trainerName,
+    public Feedback(Long id, Long userId, String userName, Long batchCode,
+                    Long trainerId, String trainerName,
                     Timestamp date, String feedback, Integer rating) {
         this.id = id;
         this.userId = userId;
         this.userName = userName;
         this.batchCode = batchCode;
+        this.trainerId = trainerId;
         this.trainerName = trainerName;
         this.date = date;
         this.feedback = feedback;
@@ -77,6 +80,9 @@ public class Feedback {
 
     public Long getBatchCode() { return batchCode; }
     public void setBatchCode(Long batchCode) { this.batchCode = batchCode; }
+
+    public Long getTrainerId() { return trainerId; } // ⭐ ADDED
+    public void setTrainerId(Long trainerId) { this.trainerId = trainerId; } // ⭐ ADDED
 
     public String getTrainerName() { return trainerName; }
     public void setTrainerName(String trainerName) { this.trainerName = trainerName; }
@@ -100,6 +106,7 @@ public class InternshipBatch {
     private String batchName;
     private String courseName;
     private Long trainerId;
+    private String trainerName; // NEW 👌
     private Date startDate;
     private Date endDate;
     private Integer totalSeats;
@@ -107,13 +114,16 @@ public class InternshipBatch {
 
     public InternshipBatch() {}
 
-    public InternshipBatch(Long batchCode, String batchName, String courseName, Long trainerId,
-                           Date startDate, Date endDate, Integer totalSeats, Integer availableSeats) {
+    public InternshipBatch(Long batchCode, String batchName, String courseName,
+                           Long trainerId, String trainerName,
+                           Date startDate, Date endDate,
+                           Integer totalSeats, Integer availableSeats) {
 
         this.batchCode = batchCode;
         this.batchName = batchName;
         this.courseName = courseName;
         this.trainerId = trainerId;
+        this.trainerName = trainerName;
         this.startDate = startDate;
         this.endDate = endDate;
         this.totalSeats = totalSeats;
@@ -121,7 +131,6 @@ public class InternshipBatch {
     }
 
     // Getters & Setters
-
     public Long getBatchCode() { return batchCode; }
     public void setBatchCode(Long batchCode) { this.batchCode = batchCode; }
 
@@ -133,6 +142,9 @@ public class InternshipBatch {
 
     public Long getTrainerId() { return trainerId; }
     public void setTrainerId(Long trainerId) { this.trainerId = trainerId; }
+
+    public String getTrainerName() { return trainerName; } // NEW
+    public void setTrainerName(String trainerName) { this.trainerName = trainerName; } // NEW
 
     public Date getStartDate() { return startDate; }
     public void setStartDate(Date startDate) { this.startDate = startDate; }
@@ -155,16 +167,21 @@ public class Performance {
     private Long id;
     private Long userId;
     private Long trainerId;
+    private Long batchCode;      // NEW
+    private String trainerName;  // NEW
     private String remarks;
     private Integer taskEvaluationScore;
     private Timestamp createdAt;
 
     public Performance() {}
 
-    public Performance(Long id, Long userId, Long trainerId, String remarks, Integer taskEvaluationScore, Timestamp createdAt) {
+    public Performance(Long id, Long userId, Long trainerId, Long batchCode, String trainerName,
+                       String remarks, Integer taskEvaluationScore, Timestamp createdAt) {
         this.id = id;
         this.userId = userId;
         this.trainerId = trainerId;
+        this.batchCode = batchCode;
+        this.trainerName = trainerName;
         this.remarks = remarks;
         this.taskEvaluationScore = taskEvaluationScore;
         this.createdAt = createdAt;
@@ -179,6 +196,12 @@ public class Performance {
 
     public Long getTrainerId() { return trainerId; }
     public void setTrainerId(Long trainerId) { this.trainerId = trainerId; }
+
+    public Long getBatchCode() { return batchCode; }
+    public void setBatchCode(Long batchCode) { this.batchCode = batchCode; }
+
+    public String getTrainerName() { return trainerName; }
+    public void setTrainerName(String trainerName) { this.trainerName = trainerName; }
 
     public String getRemarks() { return remarks; }
     public void setRemarks(String remarks) { this.remarks = remarks; }
