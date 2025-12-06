@@ -1,155 +1,44 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>com.finalproject</groupId>
-	<artifactId>internMgmtSystem</artifactId>
-	<version>1.0.0</version>
-
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.2</version>
-		<relativePath />
-	</parent>
-
-	<dependencies>
-		<!-- Spring Boot Web Starter -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
-		<!-- Spring Boot JPA Starter -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-
-		<!-- MySQL Connector -->
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-
-		<!-- JWT -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>0.11.5</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-			<version>0.11.5</version>
-			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId>
-			<version>0.11.5</version>
-			<scope>runtime</scope>
-		</dependency>
+Great! Now step 2.
 
 
-		<!-- Spring Security -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
+---
 
-		<!-- Spring Mail -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
+✅ STEP 2 — Create test-only application properties
 
-		<!-- Validation -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
+Create a new file:
 
-		<!-- Lombok -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
-		</dependency>
+src/test/resources/application-test.properties
 
-		<!-- ✅ Spring Boot Test Starter (JUnit 5) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+Paste this inside:
 
-	<properties>
-		<java.version>17</java.version>
-	</properties>
-
-	<build>
-		<plugins>
-			<!-- Spring Boot Maven Plugin -->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-</project>
-
-
-
-# SERVER CONFIG
-
-server.port=9090
-
-
-# DATABASE CONFIG (MySQL)
-
-spring.datasource.url=jdbc:mysql://localhost:3306/internMgmtSystem?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-spring.datasource.username=root
-spring.datasource.password=123456789
-
-# JDBC Driver
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
+spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
 
 spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.format_sql=true
-
-
-# LOGGING CONFIG
+spring.jpa.show-sql=true
 
 logging.level.org.springframework.jdbc.core.JdbcTemplate=DEBUG
 logging.level.org.springframework.jdbc.core.StatementCreatorUtils=TRACE
 
 
-# EMAIL CONFIG (SMTP GMAIL)
-# Use App Password, not real Gmail password
+---
 
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=prakhar.ag98@gmail.com
-spring.mail.password=k
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
+Why?
 
+✔ Makes tests use H2 in-memory database, not MySQL
 
-# MULTIPART FILE UPLOAD CONFIG
+✔ Makes tests completely safe — no real DB touched
 
-spring.servlet.multipart.enabled=true
-spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=10MB
+✔ MODE=MySQL lets H2 accept MySQL-like SQL
+
+✔ This file is loaded only when you run tests with:
+
+@ActiveProfiles("test")
 
 
-# JWT CONFIG (Optional)
-# You CAN add a secret here if you want to control manually.
-# But we are generating a secure Key inside JwtUtil.
+---
 
-jwt.expiration=36000000   # 10 hours
+Tell me once this file is created.
+Then we proceed to STEP 3 — Create schema.sql for test DB.
