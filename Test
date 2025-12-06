@@ -1,272 +1,76 @@
 package com.finalproject.internMgmtSystem.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finalproject.internMgmtSystem.dto.BatchDto;
-import com.finalproject.internMgmtSystem.dto.RegisterTrainerDto;
-import com.finalproject.internMgmtSystem.dto.StipendDto;
-import com.finalproject.internMgmtSystem.exception.GlobalExceptionHandler;
-import com.finalproject.internMgmtSystem.model.InternshipBatch;
-import com.finalproject.internMgmtSystem.model.Stipend;
-import com.finalproject.internMgmtSystem.model.Trainer;
-import com.finalproject.internMgmtSystem.model.User;
-import com.finalproject.internMgmtSystem.service.AdminService;
+import com.finalproject.internMgmtSystem.dto.LoginRequest;
+import com.finalproject.internMgmtSystem.service.AuthService;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.sql.Date;
-import java.util.List;
-
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-class AdminControllerTest {
+class AuthControllerTest {
 
     private MockMvc mockMvc;
 
     @Mock
-    private AdminService adminService;
+    private AuthService authService;
 
     @InjectMocks
-    private AdminController adminController;
+    private AuthController authController;
 
     private ObjectMapper mapper = new ObjectMapper();
-
-    private Trainer trainer;
-    private InternshipBatch batch;
-    private Stipend stipend;
-    private User user;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(adminController)
-                .setControllerAdvice(new GlobalExceptionHandler())
-                .build();
-
-        trainer = new Trainer();
-        trainer.setTrainerId(10L);
-        trainer.setName("Trainer A");
-        trainer.setEmail("t@mail.com");
-
-        batch = new InternshipBatch();
-        batch.setBatchCode(101L);
-        batch.setBatchName("Java Batch");
-        batch.setCourseName("Java");
-
-        stipend = new Stipend();
-        stipend.setId(1L);
-        stipend.setUserId(1L);
-        stipend.setAmount(2000.0);
-
-        user = new User();
-        user.setUserId(5L);
-        user.setUserName("User A");
-        user.setEmail("user@mail.com");
+        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
     }
 
     @Test
-    void testAddTrainer_Success() throws Exception {
-        RegisterTrainerDto dto =
-                new RegisterTrainerDto("Trainer A","t@mail.com","123","123","2yrs","Java",null,"Bio");
+    void testLogin_Success() throws Exception {
+        LoginRequest req = new LoginRequest("user@mail.com", "123");
+        when(authService.login(any(LoginRequest.class))).thenReturn("TOKEN123");
 
-        when(adminService.registerTrainer(any())).thenReturn(trainer);
-
-        mockMvc.perform(post("/api/admin/trainers")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
+                        .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.trainerId").value(10))
-                .andExpect(jsonPath("$.name").value("Trainer A"));
+                .andExpect(jsonPath("$.token").value("TOKEN123"));
 
-        verify(adminService).registerTrainer(any());
+        verify(authService).login(any(LoginRequest.class));
     }
 
     @Test
-    void testAddTrainer_Failure() throws Exception {
-        RegisterTrainerDto dto =
-                new RegisterTrainerDto("Trainer A","t@mail.com","123","123","2yrs","Java",null,"Bio");
+    void testLogin_Failure() throws Exception {
+        LoginRequest req = new LoginRequest("user@mail.com", "wrong");
+        when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new RuntimeException("Invalid"));
 
-        when(adminService.registerTrainer(any())).thenThrow(new RuntimeException("fail"));
-
-        mockMvc.perform(post("/api/admin/trainers")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
+                        .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isInternalServerError());
 
-        verify(adminService).registerTrainer(any());
+        verify(authService).login(any(LoginRequest.class));
     }
 
     @Test
-    void testCreateBatch_Success() throws Exception {
-        BatchDto dto =
-                new BatchDto("Java Batch","Java",10L,
-                        Date.valueOf("2025-01-01"),Date.valueOf("2025-03-01"),30,5);
+    void testLogin_EmptyRequest() throws Exception {
+        LoginRequest req = new LoginRequest("", "");
 
-        when(adminService.createBatch(any())).thenReturn(batch);
+        when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new RuntimeException("Invalid"));
 
-        mockMvc.perform(post("/api/admin/batches")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.batchCode").value(101))
-                .andExpect(jsonPath("$.batchName").value("Java Batch"));
-
-        verify(adminService).createBatch(any());
-    }
-
-    @Test
-    void testCreateBatch_Failure() throws Exception {
-        BatchDto dto =
-                new BatchDto("Java Batch","Java",10L,
-                        Date.valueOf("2025-01-01"),Date.valueOf("2025-03-01"),30,5);
-
-        when(adminService.createBatch(any())).thenThrow(new RuntimeException("fail"));
-
-        mockMvc.perform(post("/api/admin/batches")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
+                        .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isInternalServerError());
 
-        verify(adminService).createBatch(any());
-    }
-
-    @Test
-    void testAddStipend_Success() throws Exception {
-        StipendDto dto = new StipendDto(1L,"User","Cash",2000.0);
-
-        when(adminService.giveStipend(any())).thenReturn(stipend);
-
-        mockMvc.perform(post("/api/admin/stipend")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.amount").value(2000.0));
-
-        verify(adminService).giveStipend(any());
-    }
-
-    @Test
-    void testAddStipend_Failure() throws Exception {
-        StipendDto dto = new StipendDto(1L,"User","Cash",2000.0);
-
-        when(adminService.giveStipend(any())).thenThrow(new RuntimeException("fail"));
-
-        mockMvc.perform(post("/api/admin/stipend")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isInternalServerError());
-
-        verify(adminService).giveStipend(any());
-    }
-
-    @Test
-    void testGetAllUsers() throws Exception {
-        when(adminService.getAllUsers()).thenReturn(List.of(user));
-
-        mockMvc.perform(get("/api/admin/users"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
-
-        verify(adminService).getAllUsers();
-    }
-
-    @Test
-    void testGetAllUsers_Empty() throws Exception {
-        when(adminService.getAllUsers()).thenReturn(List.of());
-
-        mockMvc.perform(get("/api/admin/users"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(0));
-
-        verify(adminService).getAllUsers();
-    }
-
-    @Test
-    void testGetAllTrainers() throws Exception {
-        when(adminService.getAllTrainers()).thenReturn(List.of(trainer));
-
-        mockMvc.perform(get("/api/admin/trainers"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
-
-        verify(adminService).getAllTrainers();
-    }
-
-    @Test
-    void testGetAllBatches() throws Exception {
-        when(adminService.getAllBatches()).thenReturn(List.of(batch));
-
-        mockMvc.perform(get("/api/admin/batches"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1));
-
-        verify(adminService).getAllBatches();
-    }
-
-    @Test
-    void testDeleteUserByEmail() throws Exception {
-        doNothing().when(adminService).deleteUserByEmail("user@mail.com");
-
-        mockMvc.perform(delete("/api/admin/user/email/user@mail.com"))
-                .andExpect(status().isOk());
-
-        verify(adminService).deleteUserByEmail("user@mail.com");
-    }
-
-    @Test
-    void testDeleteUserByEmail_Failure() throws Exception {
-        doThrow(new RuntimeException("fail"))
-                .when(adminService).deleteUserByEmail("user@mail.com");
-
-        mockMvc.perform(delete("/api/admin/user/email/user@mail.com"))
-                .andExpect(status().isInternalServerError());
-
-        verify(adminService).deleteUserByEmail("user@mail.com");
-    }
-
-    @Test
-    void testDeleteTrainerByEmail() throws Exception {
-        doNothing().when(adminService).deleteTrainerByEmail("t@mail.com");
-
-        mockMvc.perform(delete("/api/admin/trainer/email/t@mail.com"))
-                .andExpect(status().isOk());
-
-        verify(adminService).deleteTrainerByEmail("t@mail.com");
-    }
-
-    @Test
-    void testDeleteTrainerByEmail_Failure() throws Exception {
-        doThrow(new RuntimeException("fail"))
-                .when(adminService).deleteTrainerByEmail("t@mail.com");
-
-        mockMvc.perform(delete("/api/admin/trainer/email/t@mail.com"))
-                .andExpect(status().isInternalServerError());
-
-        verify(adminService).deleteTrainerByEmail("t@mail.com");
-    }
-
-    @Test
-    void testDeleteBatchByName() throws Exception {
-        doNothing().when(adminService).deleteBatchByName("Java Batch");
-
-        mockMvc.perform(delete("/api/admin/batch/name/Java Batch"))
-                .andExpect(status().isOk());
-
-        verify(adminService).deleteBatchByName("Java Batch");
-    }
-
-    @Test
-    void testDeleteBatchByName_Failure() throws Exception {
-        doThrow(new RuntimeException("fail"))
-                .when(adminService).deleteBatchByName("Java Batch");
-
-        mockMvc.perform(delete("/api/admin/batch/name/Java Batch"))
-                .andExpect(status().isInternalServerError());
-
-        verify(adminService).deleteBatchByName("Java Batch");
+        verify(authService).login(any(LoginRequest.class));
     }
 }
