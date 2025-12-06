@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 
+import java.sql.Date;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,13 +30,34 @@ public class FeedbackDaoImplTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        f1 = new Feedback(1L, "UserA", 101L, 10L, "TrainerA", "Good", 5);
-        f2 = new Feedback(2L, "UserB", 102L, 10L, "TrainerA", "Average", 3);
+
+        f1 = new Feedback();
+        f1.setFeedbackId(1L);
+        f1.setUserId(10L);
+        f1.setUserName("UserA");
+        f1.setBatchCode(100L);
+        f1.setTrainerId(20L);
+        f1.setTrainerName("TrainerA");
+        f1.setDate(Date.valueOf("2025-01-01"));
+        f1.setFeedback("Good");
+        f1.setRating(5);
+
+        f2 = new Feedback();
+        f2.setFeedbackId(2L);
+        f2.setUserId(11L);
+        f2.setUserName("UserB");
+        f2.setBatchCode(100L);
+        f2.setTrainerId(20L);
+        f2.setTrainerName("TrainerA");
+        f2.setDate(Date.valueOf("2025-01-02"));
+        f2.setFeedback("Average");
+        f2.setRating(3);
     }
 
     @Test
     void testSave() {
-        when(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class)).thenReturn(1L);
+        when(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class))
+                .thenReturn(1L);
 
         Feedback result = feedbackDao.save(f1);
 
@@ -55,20 +77,20 @@ public class FeedbackDaoImplTest {
 
     @Test
     void testFindByTrainerName_Negative() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Unknown")))
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("XYZ")))
                 .thenReturn(Arrays.asList());
 
-        List<Feedback> list = feedbackDao.findByTrainerName("Unknown");
+        List<Feedback> list = feedbackDao.findByTrainerName("XYZ");
 
         assertTrue(list.isEmpty());
     }
 
     @Test
     void testFindByTrainerId_Positive() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(20L)))
                 .thenReturn(Arrays.asList(f1, f2));
 
-        List<Feedback> list = feedbackDao.findByTrainerId(10L);
+        List<Feedback> list = feedbackDao.findByTrainerId(20L);
 
         assertEquals(2, list.size());
     }
@@ -85,20 +107,20 @@ public class FeedbackDaoImplTest {
 
     @Test
     void testFindByUserId_Positive() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
                 .thenReturn(Arrays.asList(f1));
 
-        List<Feedback> list = feedbackDao.findByUserId(1L);
+        List<Feedback> list = feedbackDao.findByUserId(10L);
 
         assertEquals(1, list.size());
     }
 
     @Test
     void testFindByUserId_Negative() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1000L)))
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(888L)))
                 .thenReturn(Arrays.asList());
 
-        List<Feedback> list = feedbackDao.findByUserId(1000L);
+        List<Feedback> list = feedbackDao.findByUserId(888L);
 
         assertTrue(list.isEmpty());
     }
