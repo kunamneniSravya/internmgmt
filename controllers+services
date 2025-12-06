@@ -88,6 +88,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -105,9 +106,11 @@ public class AuthController {
 
     // LOGIN (existing)
     @PostMapping("/login")
-    public String login(@Valid @RequestBody LoginRequest loginRequest) {
-        return authService.login(loginRequest);
+    public Map<String, String> login(@Valid @RequestBody LoginRequest loginRequest) {
+        String token = authService.login(loginRequest);
+        return Map.of("token", token);
     }
+
 
     /**
      * Temporary endpoint to create the one-time ADMIN via Postman.
@@ -169,64 +172,59 @@ public class TrainerController {
     @Autowired
     private TrainerService trainerService;
 
-    // View all batches assigned to trainer
     @GetMapping("/batches/{trainerId}")
     public List<InternshipBatch> getBatches(@PathVariable Long trainerId) {
         return trainerService.getBatches(trainerId);
     }
 
-    // Add Task
     @PostMapping("/tasks")
     public Task addTask(@Valid @RequestBody TaskDto dto) {
         return trainerService.addTask(dto);
     }
-    
- // View all tasks assigned by the trainer
+
     @GetMapping("/tasks/{trainerId}")
     public List<Task> getTasksByTrainerId(@PathVariable Long trainerId) {
         return trainerService.getTasksByTrainerId(trainerId);
     }
 
-
-    // Update Task
     @PutMapping("/tasks/{taskId}")
     public String updateTask(@Valid @RequestBody TaskDto dto, @PathVariable Long taskId) {
         trainerService.updateTask(dto, taskId);
         return "Task updated successfully";
     }
 
-    // Delete Task
     @DeleteMapping("/tasks/{taskId}")
     public String deleteTask(@PathVariable Long taskId) {
         trainerService.deleteTask(taskId);
         return "Task deleted successfully";
     }
 
-    // Mark Attendance
     @PostMapping("/attendance")
     public Attendance markAttendance(@Valid @RequestBody AttendanceDto dto) {
         return trainerService.markAttendance(dto);
     }
 
-    // Update Performance
     @PostMapping("/performance")
     public Performance updatePerformance(@Valid @RequestBody PerformanceDto dto) {
         return trainerService.updatePerformance(dto);
     }
 
-    // View Feedback
-    @GetMapping("/feedback/{trainerName}")
-    public List<Feedback> getFeedback(@PathVariable String trainerName) {
+    // ⭐ FEEDBACK FIXED — UNIQUE MAPPINGS
+    @GetMapping("/feedback/name/{trainerName}")
+    public List<Feedback> getFeedbackByName(@PathVariable String trainerName) {
         return trainerService.viewFeedback(trainerName);
     }
-    
-	// View all performance records assigned by the trainer
-	@GetMapping("/performance/{trainerId}")
-	public List<Performance> getPerformanceByTrainerId(@PathVariable Long trainerId) {
-		return trainerService.getPerformanceByTrainerId(trainerId);
-	}
 
-  //Fetching the batches and corresponding users
+    @GetMapping("/feedback/id/{trainerId}")
+    public List<Feedback> getFeedbackByTrainerId(@PathVariable Long trainerId) {
+        return trainerService.viewFeedbackByTrainerId(trainerId);
+    }
+
+    @GetMapping("/performance/{trainerId}")
+    public List<Performance> getPerformanceByTrainerId(@PathVariable Long trainerId) {
+        return trainerService.getPerformanceByTrainerId(trainerId);
+    }
+
     @GetMapping("/UserBatch/{trainerId}")
     public List<UserBatchDto> getUsersByTrainerId(@PathVariable int trainerId) {
         return trainerService.getUsersByTrainerId(trainerId);
@@ -237,6 +235,7 @@ package com.finalproject.internMgmtSystem.controller;
 import com.finalproject.internMgmtSystem.dto.FeedbackDto;
 import com.finalproject.internMgmtSystem.dto.RegisterUserDto;
 import com.finalproject.internMgmtSystem.model.*;
+import com.finalproject.internMgmtSystem.repository.BatchDao;
 import com.finalproject.internMgmtSystem.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -249,51 +248,52 @@ import java.util.List;
 @CrossOrigin
 public class UserController {
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	// User registration
-	@PostMapping("/register")
-	public User register(@Valid @RequestBody RegisterUserDto dto) {
-		return userService.registerUser(dto);
-	}
+    @Autowired
+    private BatchDao batchDao; // 🔥 FIXED — Autowired properly
 
-	// Get Tasks
-	@GetMapping("/{userId}/tasks")
-	public List<Task> getTasks(@PathVariable Long userId) {
-		return userService.getTasks(userId);
-	}
+    @PostMapping("/register")
+    public User register(@Valid @RequestBody RegisterUserDto dto) {
+        return userService.registerUser(dto);
+    }
 
-	// Get Performance
-	@GetMapping("/{userId}/performance")
-	public List<Performance> getPerformance(@PathVariable Long userId) {
-		return userService.getPerformance(userId);
-	}
+    @GetMapping("/{userId}/tasks")
+    public List<Task> getTasks(@PathVariable Long userId) {
+        return userService.getTasks(userId);
+    }
 
-	// Get Stipend History
-	@GetMapping("/{userId}/stipends")
-	public List<Stipend> getStipends(@PathVariable Long userId) {
-		return userService.getStipendHistory(userId);
-	}
+    @GetMapping("/{userId}/performance")
+    public List<Performance> getPerformance(@PathVariable Long userId) {
+        return userService.getPerformance(userId);
+    }
 
-	// Get Batch Details
-	@GetMapping("/batch/{batchCode}")
-	public InternshipBatch getBatchDetails(@PathVariable Long batchCode) {
-		return userService.getBatchDetails(batchCode);
-	}
+    @GetMapping("/{userId}/stipends")
+    public List<Stipend> getStipends(@PathVariable Long userId) {
+        return userService.getStipendHistory(userId);
+    }
 
-	// Submit Feedback
-	@PostMapping("/feedback")
-	public Feedback submitFeedback(@Valid @RequestBody FeedbackDto dto) {
-		return userService.submitFeedback(dto);
-	}
+    @GetMapping("/batch/{batchCode}")
+    public InternshipBatch getBatchDetails(@PathVariable Long batchCode) {
+        return userService.getBatchDetails(batchCode);
+    }
 
-	// Get Attendance
-	@GetMapping("/{userId}/attendance")
-	public List<Attendance> getAttendance(@PathVariable Long userId) {
-		return userService.getAttendance(userId);
-	}
+    @PostMapping("/feedback")
+    public Feedback submitFeedback(@Valid @RequestBody FeedbackDto dto) {
+        return userService.submitFeedback(dto);
+    }
 
+    @GetMapping("/{userId}/attendance")
+    public List<Attendance> getAttendance(@PathVariable Long userId) {
+        return userService.getAttendance(userId);
+    }
+
+    // 📌 NEW PUBLIC ENDPOINT
+    @GetMapping("/batches")
+    public List<InternshipBatch> getAllBatchesPublic() {
+        return batchDao.findAll(); // 🟢 Now resolved and working!
+    }
 }
 package com.finalproject.internMgmtSystem.service;
 
@@ -449,6 +449,8 @@ public class AdminService {
 		batchDao.delete(batch.getBatchCode());
 	}
 }
+
+}
 package com.finalproject.internMgmtSystem.service;
 
 import com.finalproject.internMgmtSystem.dto.LoginRequest;
@@ -486,23 +488,29 @@ public class AuthService {
             throw new ResourceNotFoundException("Account not found: " + loginRequest.getEmail());
         }
 
+        // USER LOGIN
         if (user != null) {
             if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                 throw new RuntimeException("Invalid password");
             }
+
             return jwtUtil.generateToken(
+                    user.getUserId(),
                     user.getEmail(),
-                    "ROLE_" + user.getRole()            // FIXED ROLE FORMAT
+                    "ROLE_" + user.getRole()
             );
         }
 
+        // TRAINER LOGIN
         if (!passwordEncoder.matches(loginRequest.getPassword(), trainer.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
-        return jwtUtil.generateToken(
+        return jwtUtil.generateTrainerToken(
+                trainer.getTrainerId(),
                 trainer.getEmail(),
-                "ROLE_" + trainer.getRole()           // FIXED ROLE FORMAT
+                "ROLE_" + trainer.getRole(),
+                trainer.getName()         // Trainer name added inside token
         );
     }
 }
@@ -608,13 +616,17 @@ public class TrainerService {
     public Performance updatePerformance(PerformanceDto dto) {
 
         Performance p = new Performance();
+
         p.setUserId(dto.getUserId());
         p.setTrainerId(dto.getTrainerId());
+        p.setBatchCode(dto.getBatchCode());       // NEW
+        p.setTrainerName(dto.getTrainerName());   // NEW
         p.setRemarks(dto.getRemarks());
         p.setTaskEvaluationScore(dto.getTaskEvaluationScore());
 
         return performanceDao.save(p);
     }
+
 
     public List<Feedback> viewFeedback(String trainerName) {
         List<Feedback> list = feedbackDao.findByTrainerName(trainerName);
@@ -644,6 +656,15 @@ public class TrainerService {
         }
         return list;
     }
+    public List<Feedback> viewFeedbackByTrainerId(Long trainerId) {
+        List<Feedback> list = feedbackDao.findByTrainerId(trainerId);
+        if (list.isEmpty()) {
+            throw new ResourceNotFoundException("No feedback found for trainer ID: " + trainerId);
+        }
+        return list;
+    }
+
+
 
 }
 package com.finalproject.internMgmtSystem.service;
@@ -682,17 +703,18 @@ public class UserService {
     private FeedbackDao feedbackDao;
 
     @Autowired
+    private AttendanceDao attendanceDao;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public User registerUser(RegisterUserDto dto) {
 
-        // Check if email already exists
         User exists = userDao.findByEmail(dto.getEmail());
         if (exists != null) {
             throw new UserAlreadyExistsException("User email already exists: " + dto.getEmail());
         }
 
-        // Validate batch and decrement seat
         InternshipBatch batch = batchDao.findByBatchCode(dto.getBatchCode());
         if (batch == null) {
             throw new ResourceNotFoundException("Batch not found with code: " + dto.getBatchCode());
@@ -702,7 +724,6 @@ public class UserService {
         }
         batchDao.decrementAvailableSeats(dto.getBatchCode());
 
-        // Create user
         User user = new User();
         user.setUserName(dto.getUserName());
         user.setEmail(dto.getEmail());
@@ -725,29 +746,16 @@ public class UserService {
         return userDao.save(user);
     }
 
-
     public List<Task> getTasks(Long userId) {
-        List<Task> tasks = taskDao.findByUserId(userId);
-        if (tasks.isEmpty()) {
-            throw new ResourceNotFoundException("No tasks found for user ID: " + userId);
-        }
-        return tasks;
+        return taskDao.findByUserId(userId); // ✨ Allow empty list
     }
 
     public List<Performance> getPerformance(Long userId) {
-        List<Performance> list = performanceDao.findByUserId(userId);
-        if (list.isEmpty()) {
-            throw new ResourceNotFoundException("No performance records for user ID: " + userId);
-        }
-        return list;
+        return performanceDao.findByUserId(userId); // ✨ Allow empty list
     }
 
     public List<Stipend> getStipendHistory(Long userId) {
-        List<Stipend> list = stipendDao.findByUserId(userId);
-        if (list.isEmpty()) {
-            throw new ResourceNotFoundException("No stipend records for user ID: " + userId);
-        }
-        return list;
+        return stipendDao.findByUserId(userId); // ✨ Allow empty list
     }
 
     public InternshipBatch getBatchDetails(Long batchCode) {
@@ -759,29 +767,19 @@ public class UserService {
     }
 
     public Feedback submitFeedback(FeedbackDto dto) {
-
-        // You may also validate if batch or trainer exists
-
         Feedback f = new Feedback();
         f.setUserId(dto.getUserId());
         f.setUserName(dto.getUserName());
         f.setBatchCode(dto.getBatchCode());
+        f.setTrainerId(dto.getTrainerId());   // ⭐ ADD THIS
         f.setTrainerName(dto.getTrainerName());
         f.setFeedback(dto.getFeedback());
         f.setRating(dto.getRating());
-
         return feedbackDao.save(f);
     }
-    
-    @Autowired
-    private AttendanceDao attendanceDao;
+
 
     public List<Attendance> getAttendance(Long userId) {
-        List<Attendance> list = attendanceDao.findByUserId(userId);
-        if (list.isEmpty()) {
-            throw new ResourceNotFoundException("No attendance record for user: " + userId);
-        }
-        return list;
+        return attendanceDao.findByUserId(userId); // ✨ Allow empty list
     }
-
 }
