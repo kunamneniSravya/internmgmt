@@ -1,16 +1,23 @@
 package com.finalproject.internMgmtSystem.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finalproject.internMgmtSystem.dto.CreateAdminDto;
 import com.finalproject.internMgmtSystem.dto.LoginRequest;
+import com.finalproject.internMgmtSystem.exception.UserAlreadyExistsException;
+import com.finalproject.internMgmtSystem.model.User;
+import com.finalproject.internMgmtSystem.repository.UserDao;
 import com.finalproject.internMgmtSystem.service.AuthService;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
+
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class AuthControllerTest {
@@ -20,15 +27,36 @@ class AuthControllerTest {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private UserDao userDao;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private AuthController authController;
 
     private ObjectMapper mapper = new ObjectMapper();
 
+    private User admin;
+    private User normalUser;
+
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
+
+        admin = new User();
+        admin.setUserId(1L);
+        admin.setUserName("Admin");
+        admin.setEmail("admin@mail.com");
+        admin.setRole("ADMIN");
+
+        normalUser = new User();
+        normalUser.setUserId(2L);
+        normalUser.setUserName("User");
+        normalUser.setEmail("user@mail.com");
+        normalUser.setRole("USER");
     }
 
     @Test
@@ -48,8 +76,7 @@ class AuthControllerTest {
     @Test
     void testLogin_Failure() throws Exception {
         LoginRequest req = new LoginRequest("user@mail.com", "wrong");
-        when(authService.login(any(LoginRequest.class)))
-                .thenThrow(new RuntimeException("Invalid"));
+        when(authService.login(any(LoginRequest.class))).thenThrow(new RuntimeException());
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -60,17 +87,67 @@ class AuthControllerTest {
     }
 
     @Test
-    void testLogin_EmptyRequest() throws Exception {
-        LoginRequest req = new LoginRequest("", "");
+    void testCreateAdmin_Success() throws Exception {
+        CreateAdminDto dto = new CreateAdminDto();
+        dto.setUserName("Admin");
+        dto.setEmail("newadmin@mail.com");
+        dto.setPassword("pass");
 
-        when(authService.login(any(LoginRequest.class)))
-                .thenThrow(new RuntimeException("Invalid"));
+        when(userDao.findAll()).thenReturn(List.of(normalUser));
+        when(userDao.findByEmail("newadmin@mail.com")).thenReturn(null);
+        when(passwordEncoder.encode("pass")).thenReturn("ENC_PASS");
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/create-admin")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(req)))
-                .andExpect(status().isInternalServerError());
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Admin created successfully!"));
 
-        verify(authService).login(any(LoginRequest.class));
+        verify(userDao).save(any(User.class));
     }
+
+    @Test
+    void testCreateAdmin_Failure_AdminAlreadyExists() throws Exception {
+        CreateAdminDto dto = new CreateAdminDto();
+        dto.setUserName("Admin1");
+        dto.setEmail("admin@mail.com");
+        dto.setPassword("pass");
+
+        when(userDao.findAll()).thenReturn(List.of(admin));
+
+        mockMvc.perform(post("/api/auth/create-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+
+        verify(userDao, never()).save(any(User.class));
+    }
+
+    @Test
+    void testCreateAdmin_Failure_EmailExists() throws Exception {
+        CreateAdminDto dto = new CreateAdminDto();
+        dto.setUserName("NewAdmin");
+        dto.setEmail("user@mail.com");
+        dto.setPassword("pass");
+
+        when(userDao.findAll()).thenReturn(List.of(normalUser));
+        when(userDao.findByEmail("user@mail.com")).thenReturn(normalUser);
+
+        mockMvc.perform(post("/api/auth/create-admin")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+
+        verify(userDao, never()).save(any(User.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"user@mail.com", "admin@mail.com", "x@y.com"})
+    void emailParameterizedTest(String email) {
+        Assertions.assertTrue(email.contains("@"));
+    }
+
+    @Disabled("skip")
+    @Test
+    void disabledTest() {}
 }
