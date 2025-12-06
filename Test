@@ -1,44 +1,235 @@
-Great! Now step 2.
+CREATE TABLE trainers (
+    trainer_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255),
+    contact VARCHAR(50),
+    experience VARCHAR(100),
+    skills VARCHAR(255),
+    profile_pic VARCHAR(500),
+    bio VARCHAR(1000),
+    role VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE users (
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255),
+    dob DATE,
+    contact_no VARCHAR(50),
+    address VARCHAR(255),
+    college_name VARCHAR(255),
+    grade VARCHAR(50),
+    major VARCHAR(100),
+    team VARCHAR(100),
+    batch_code BIGINT,
+    start_date DATE,
+    end_date DATE,
+    graduating_year INT,
+    resume VARCHAR(500),
+    profile_pic VARCHAR(500),
+    role VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE internship_batches (
+    batch_code BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_name VARCHAR(255),
+    course_name VARCHAR(255),
+    trainer_id BIGINT,
+    start_date DATE,
+    end_date DATE,
+    total_seats INT,
+    available_seats INT
+);
+
+CREATE TABLE stipend (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    user_name VARCHAR(255),
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_mode VARCHAR(50),
+    amount DOUBLE
+);
+
+CREATE TABLE tasks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    description VARCHAR(1000),
+    trainer_id BIGINT,
+    status VARCHAR(50),
+    deadline DATE,
+    upload_file VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE feedback (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    user_name VARCHAR(255),
+    batch_code BIGINT,
+    trainer_id BIGINT,
+    trainer_name VARCHAR(255),
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    feedback VARCHAR(2000),
+    rating INT
+);
+
+CREATE TABLE performance (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    trainer_id BIGINT,
+    batch_code BIGINT,
+    trainer_name VARCHAR(255),
+    remarks VARCHAR(2000),
+    task_evaluation_score INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE attendance (
+    attendance_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    batch_code BIGINT,
+    date DATE,
+    present BOOLEAN
+);Great! On to the MOST IMPORTANT part.
 
 
 ---
 
-✅ STEP 2 — Create test-only application properties
+✅ STEP 3 — Create schema.sql for test tables
 
-Create a new file:
+Create this file:
 
-src/test/resources/application-test.properties
+src/test/resources/schema.sql
 
-Paste this inside:
-
-spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
-
-spring.jpa.hibernate.ddl-auto=none
-spring.jpa.show-sql=true
-
-logging.level.org.springframework.jdbc.core.JdbcTemplate=DEBUG
-logging.level.org.springframework.jdbc.core.StatementCreatorUtils=TRACE
+Paste the following minimal schema that matches your DAOs and controllers:
 
 
 ---
 
-Why?
+⭐ FULL schema.sql (copy–paste)
 
-✔ Makes tests use H2 in-memory database, not MySQL
+CREATE TABLE trainers (
+    trainer_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255),
+    contact VARCHAR(50),
+    experience VARCHAR(100),
+    skills VARCHAR(255),
+    profile_pic VARCHAR(500),
+    bio VARCHAR(1000),
+    role VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-✔ Makes tests completely safe — no real DB touched
+CREATE TABLE users (
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255),
+    dob DATE,
+    contact_no VARCHAR(50),
+    address VARCHAR(255),
+    college_name VARCHAR(255),
+    grade VARCHAR(50),
+    major VARCHAR(100),
+    team VARCHAR(100),
+    batch_code BIGINT,
+    start_date DATE,
+    end_date DATE,
+    graduating_year INT,
+    resume VARCHAR(500),
+    profile_pic VARCHAR(500),
+    role VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-✔ MODE=MySQL lets H2 accept MySQL-like SQL
+CREATE TABLE internship_batches (
+    batch_code BIGINT AUTO_INCREMENT PRIMARY KEY,
+    batch_name VARCHAR(255),
+    course_name VARCHAR(255),
+    trainer_id BIGINT,
+    start_date DATE,
+    end_date DATE,
+    total_seats INT,
+    available_seats INT
+);
 
-✔ This file is loaded only when you run tests with:
+CREATE TABLE stipend (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    user_name VARCHAR(255),
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_mode VARCHAR(50),
+    amount DOUBLE
+);
 
-@ActiveProfiles("test")
+CREATE TABLE tasks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    description VARCHAR(1000),
+    trainer_id BIGINT,
+    status VARCHAR(50),
+    deadline DATE,
+    upload_file VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE feedback (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    user_name VARCHAR(255),
+    batch_code BIGINT,
+    trainer_id BIGINT,
+    trainer_name VARCHAR(255),
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    feedback VARCHAR(2000),
+    rating INT
+);
+
+CREATE TABLE performance (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    trainer_id BIGINT,
+    batch_code BIGINT,
+    trainer_name VARCHAR(255),
+    remarks VARCHAR(2000),
+    task_evaluation_score INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE attendance (
+    attendance_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT,
+    batch_code BIGINT,
+    date DATE,
+    present BOOLEAN
+);
 
 
 ---
 
-Tell me once this file is created.
-Then we proceed to STEP 3 — Create schema.sql for test DB.
+🧠 Why this file?
+
+Your integration test uses JdbcTemplate-based DAOs, so H2 must have all the tables they will query/insert/update.
+
+This schema ensures your tests won’t fail with:
+
+❌ “Table not found”
+❌ “Column not found”
+
+
+---
+
+✔ After adding, run Maven → Update Project
+✔ Then we move to STEP 4 — optional data.sql
+✔ Next, we’ll write your first integration test and run it
+
+
+---
+
+Tell me once your schema.sql is created.
