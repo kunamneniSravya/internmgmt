@@ -13,169 +13,242 @@ import org.mockito.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.finalproject.internMgmtSystem.model.Attendance;
+import com.finalproject.internMgmtSystem.model.InternshipBatch;
 
-public class AttendanceDaoImplTest {
+public class BatchDaoImplTest {
 
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
-    private AttendanceDaoImpl attendanceDao;
+    private BatchDaoImpl batchDao;
 
-    private Attendance attendance1;
-    private Attendance attendance2;
+    private InternshipBatch batch1;
+    private InternshipBatch batch2;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
 
-        attendance1 = new Attendance(1L, 10L, 100L, Date.valueOf("2025-01-01"), true);
-        attendance2 = new Attendance(2L, 11L, 100L, Date.valueOf("2025-01-02"), false);
+        batch1 = new InternshipBatch(
+                1L, "Batch A", "Java", 10L, "Trainer A",
+                Date.valueOf("2025-01-01"), Date.valueOf("2025-03-01"),
+                30, 20
+        );
+
+        batch2 = new InternshipBatch(
+                2L, "Batch B", "Python", 11L, "Trainer B",
+                Date.valueOf("2025-02-01"), Date.valueOf("2025-04-01"),
+                40, 35
+        );
     }
 
     // ============================
-    // POSITIVE: SAVE attendance
+    // SAVE
     // ============================
     @Test
     void testSave_Success() {
         when(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class))
                 .thenReturn(1L);
 
-        Attendance saved = attendanceDao.save(attendance1);
+        InternshipBatch result = batchDao.save(batch1);
 
-        assertNotNull(saved);
-        assertEquals(1L, saved.getAttendanceId());
+        assertNotNull(result);
+        assertEquals(1L, result.getBatchCode());
     }
 
-    // NEGATIVE: Failure to return key (null key)
     @Test
-    void testSave_FailsNoKey() {
+    void testSave_Fail_NoKey() {
         when(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class))
                 .thenReturn(null);
 
-        Attendance saved = attendanceDao.save(attendance1);
+        InternshipBatch result = batchDao.save(batch1);
 
-        assertNull(saved.getAttendanceId());
+        assertNull(result.getBatchCode());
     }
 
     // ============================
-    // FIND BY USER & DATE
+    // FIND BY ID
     // ============================
     @Test
-    void testFindByUserIdAndDate_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L), any(Date.class)))
-                .thenReturn(Arrays.asList(attendance1));
+    void testFindById_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Arrays.asList(batch1));
 
-        Attendance result = attendanceDao.findByUserIdAndDate(10L, attendance1.getDate());
+        InternshipBatch result = batchDao.findById(1L);
 
         assertNotNull(result);
-        assertEquals(10L, result.getUserId());
+        assertEquals("Batch A", result.getBatchName());
     }
 
-    // NEGATIVE: No record found
     @Test
-    void testFindByUserIdAndDate_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), anyLong(), any(Date.class)))
+    void testFindById_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
                 .thenReturn(Collections.emptyList());
 
-        Attendance result = attendanceDao.findByUserIdAndDate(10L, attendance1.getDate());
+        InternshipBatch result = batchDao.findById(1L);
 
         assertNull(result);
     }
 
     // ============================
-    // FIND BY USER
+    // FIND ALL
     // ============================
     @Test
-    void testFindByUserId_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
-                .thenReturn(Arrays.asList(attendance1, attendance2));
+    void testFindAll() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
+                .thenReturn(Arrays.asList(batch1, batch2));
 
-        List<Attendance> result = attendanceDao.findByUserId(10L);
+        List<InternshipBatch> result = batchDao.findAll();
 
         assertEquals(2, result.size());
     }
 
-    // NEGATIVE: Empty list
     @Test
-    void testFindByUserId_Empty() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
+    void testFindAll_Empty() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
                 .thenReturn(Collections.emptyList());
 
-        List<Attendance> result = attendanceDao.findByUserId(10L);
+        List<InternshipBatch> result = batchDao.findAll();
 
         assertTrue(result.isEmpty());
     }
 
     // ============================
-    // FIND BY BATCH
+    // FIND BY TRAINER
     // ============================
     @Test
-    void testFindByBatchCode_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(100L)))
-                .thenReturn(Arrays.asList(attendance1));
+    void testFindByTrainerId_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
+                .thenReturn(Arrays.asList(batch1));
 
-        List<Attendance> result = attendanceDao.findByBatchCode(100L);
+        List<InternshipBatch> result = batchDao.findByTrainerId(10L);
 
         assertEquals(1, result.size());
     }
 
-    // NEGATIVE: No batches found
     @Test
-    void testFindByBatchCode_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(100L)))
+    void testFindByTrainerId_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
                 .thenReturn(Collections.emptyList());
 
-        List<Attendance> result = attendanceDao.findByBatchCode(100L);
+        List<InternshipBatch> result = batchDao.findByTrainerId(10L);
 
         assertTrue(result.isEmpty());
     }
 
     // ============================
-    // UPDATE attendance
+    // FIND BY NAME
+    // ============================
+    @Test
+    void testFindByName_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Batch A")))
+                .thenReturn(Arrays.asList(batch1));
+
+        InternshipBatch result = batchDao.findByName("Batch A");
+
+        assertNotNull(result);
+        assertEquals("Batch A", result.getBatchName());
+    }
+
+    @Test
+    void testFindByName_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Batch A")))
+                .thenReturn(Collections.emptyList());
+
+        InternshipBatch result = batchDao.findByName("Batch A");
+
+        assertNull(result);
+    }
+
+    // ============================
+    // FIND BY BATCH CODE
+    // ============================
+    @Test
+    void testFindByBatchCode_Found() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Arrays.asList(batch1));
+
+        InternshipBatch result = batchDao.findByBatchCode(1L);
+
+        assertNotNull(result);
+        assertEquals("Batch A", result.getBatchName());
+    }
+
+    @Test
+    void testFindByBatchCode_NotFound() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
+                .thenReturn(Collections.emptyList());
+
+        InternshipBatch result = batchDao.findByBatchCode(1L);
+
+        assertNull(result);
+    }
+
+    // ============================
+    // UPDATE
     // ============================
     @Test
     void testUpdate_Success() {
-        when(jdbcTemplate.update(anyString(), anyBoolean(), anyLong()))
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(1);
 
-        assertDoesNotThrow(() -> attendanceDao.update(attendance1));
+        assertDoesNotThrow(() -> batchDao.update(batch1));
     }
 
-    // NEGATIVE: No rows updated
     @Test
     void testUpdate_NoRowsUpdated() {
-        when(jdbcTemplate.update(anyString(), anyBoolean(), anyLong()))
+        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(0);
 
-        attendanceDao.update(attendance1); // should not throw error
+        batchDao.update(batch1);
 
-        verify(jdbcTemplate, times(1))
-                .update(anyString(), anyBoolean(), anyLong());
+        verify(jdbcTemplate, times(1)).update(anyString(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     // ============================
-    // DELETE attendance
+    // DELETE
     // ============================
     @Test
     void testDelete_Success() {
         when(jdbcTemplate.update(anyString(), anyLong()))
                 .thenReturn(1);
 
-        attendanceDao.delete(1L);
+        batchDao.delete(1L);
 
         verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
     }
 
-    // NEGATIVE: No rows deleted
     @Test
     void testDelete_NoRowsDeleted() {
         when(jdbcTemplate.update(anyString(), anyLong()))
                 .thenReturn(0);
 
-        attendanceDao.delete(5L);
+        batchDao.delete(1L);
 
-        verify(jdbcTemplate, times(1)).update(anyString(), eq(5L));
+        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
+    }
+
+    // ============================
+    // DECREMENT SEATS
+    // ============================
+    @Test
+    void testDecrementSeats_Success() {
+        when(jdbcTemplate.update(anyString(), eq(1L)))
+                .thenReturn(1);
+
+        batchDao.decrementAvailableSeats(1L);
+
+        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
+    }
+
+    @Test
+    void testDecrementSeats_NoChange() {
+        when(jdbcTemplate.update(anyString(), eq(1L)))
+                .thenReturn(0);
+
+        batchDao.decrementAvailableSeats(1L);
+
+        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
     }
 }
