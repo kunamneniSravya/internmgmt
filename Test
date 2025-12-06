@@ -1,11 +1,11 @@
 package com.finalproject.internMgmtSystem.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 
-import java.sql.Date;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,242 +13,93 @@ import org.mockito.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.finalproject.internMgmtSystem.model.InternshipBatch;
+import com.finalproject.internMgmtSystem.model.Feedback;
 
-public class BatchDaoImplTest {
+public class FeedbackDaoImplTest {
 
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
-    private BatchDaoImpl batchDao;
+    private FeedbackDaoImpl feedbackDao;
 
-    private InternshipBatch batch1;
-    private InternshipBatch batch2;
+    private Feedback f1;
+    private Feedback f2;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-
-        batch1 = new InternshipBatch(
-                1L, "Batch A", "Java", 10L, "Trainer A",
-                Date.valueOf("2025-01-01"), Date.valueOf("2025-03-01"),
-                30, 20
-        );
-
-        batch2 = new InternshipBatch(
-                2L, "Batch B", "Python", 11L, "Trainer B",
-                Date.valueOf("2025-02-01"), Date.valueOf("2025-04-01"),
-                40, 35
-        );
+        f1 = new Feedback(1L, "UserA", 101L, 10L, "TrainerA", "Good", 5);
+        f2 = new Feedback(2L, "UserB", 102L, 10L, "TrainerA", "Average", 3);
     }
 
-    // ============================
-    // SAVE
-    // ============================
     @Test
-    void testSave_Success() {
-        when(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class))
-                .thenReturn(1L);
+    void testSave() {
+        when(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class)).thenReturn(1L);
 
-        InternshipBatch result = batchDao.save(batch1);
+        Feedback result = feedbackDao.save(f1);
 
         assertNotNull(result);
-        assertEquals(1L, result.getBatchCode());
+        assertEquals(1L, result.getFeedbackId());
     }
 
     @Test
-    void testSave_Fail_NoKey() {
-        when(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class))
-                .thenReturn(null);
+    void testFindByTrainerName_Positive() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("TrainerA")))
+                .thenReturn(Arrays.asList(f1, f2));
 
-        InternshipBatch result = batchDao.save(batch1);
+        List<Feedback> list = feedbackDao.findByTrainerName("TrainerA");
 
-        assertNull(result.getBatchCode());
-    }
-
-    // ============================
-    // FIND BY ID
-    // ============================
-    @Test
-    void testFindById_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(batch1));
-
-        InternshipBatch result = batchDao.findById(1L);
-
-        assertNotNull(result);
-        assertEquals("Batch A", result.getBatchName());
+        assertEquals(2, list.size());
     }
 
     @Test
-    void testFindById_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Collections.emptyList());
+    void testFindByTrainerName_Negative() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Unknown")))
+                .thenReturn(Arrays.asList());
 
-        InternshipBatch result = batchDao.findById(1L);
+        List<Feedback> list = feedbackDao.findByTrainerName("Unknown");
 
-        assertNull(result);
-    }
-
-    // ============================
-    // FIND ALL
-    // ============================
-    @Test
-    void testFindAll() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
-                .thenReturn(Arrays.asList(batch1, batch2));
-
-        List<InternshipBatch> result = batchDao.findAll();
-
-        assertEquals(2, result.size());
+        assertTrue(list.isEmpty());
     }
 
     @Test
-    void testFindAll_Empty() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class)))
-                .thenReturn(Collections.emptyList());
-
-        List<InternshipBatch> result = batchDao.findAll();
-
-        assertTrue(result.isEmpty());
-    }
-
-    // ============================
-    // FIND BY TRAINER
-    // ============================
-    @Test
-    void testFindByTrainerId_Found() {
+    void testFindByTrainerId_Positive() {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
-                .thenReturn(Arrays.asList(batch1));
+                .thenReturn(Arrays.asList(f1, f2));
 
-        List<InternshipBatch> result = batchDao.findByTrainerId(10L);
+        List<Feedback> list = feedbackDao.findByTrainerId(10L);
 
-        assertEquals(1, result.size());
+        assertEquals(2, list.size());
     }
 
     @Test
-    void testFindByTrainerId_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(10L)))
-                .thenReturn(Collections.emptyList());
+    void testFindByTrainerId_Negative() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(999L)))
+                .thenReturn(Arrays.asList());
 
-        List<InternshipBatch> result = batchDao.findByTrainerId(10L);
+        List<Feedback> list = feedbackDao.findByTrainerId(999L);
 
-        assertTrue(result.isEmpty());
-    }
-
-    // ============================
-    // FIND BY NAME
-    // ============================
-    @Test
-    void testFindByName_Found() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Batch A")))
-                .thenReturn(Arrays.asList(batch1));
-
-        InternshipBatch result = batchDao.findByName("Batch A");
-
-        assertNotNull(result);
-        assertEquals("Batch A", result.getBatchName());
+        assertTrue(list.isEmpty());
     }
 
     @Test
-    void testFindByName_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("Batch A")))
-                .thenReturn(Collections.emptyList());
-
-        InternshipBatch result = batchDao.findByName("Batch A");
-
-        assertNull(result);
-    }
-
-    // ============================
-    // FIND BY BATCH CODE
-    // ============================
-    @Test
-    void testFindByBatchCode_Found() {
+    void testFindByUserId_Positive() {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Arrays.asList(batch1));
+                .thenReturn(Arrays.asList(f1));
 
-        InternshipBatch result = batchDao.findByBatchCode(1L);
+        List<Feedback> list = feedbackDao.findByUserId(1L);
 
-        assertNotNull(result);
-        assertEquals("Batch A", result.getBatchName());
+        assertEquals(1, list.size());
     }
 
     @Test
-    void testFindByBatchCode_NotFound() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1L)))
-                .thenReturn(Collections.emptyList());
+    void testFindByUserId_Negative() {
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(1000L)))
+                .thenReturn(Arrays.asList());
 
-        InternshipBatch result = batchDao.findByBatchCode(1L);
+        List<Feedback> list = feedbackDao.findByUserId(1000L);
 
-        assertNull(result);
-    }
-
-    // ============================
-    // UPDATE
-    // ============================
-    @Test
-    void testUpdate_Success() {
-        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(1);
-
-        assertDoesNotThrow(() -> batchDao.update(batch1));
-    }
-
-    @Test
-    void testUpdate_NoRowsUpdated() {
-        when(jdbcTemplate.update(anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(0);
-
-        batchDao.update(batch1);
-
-        verify(jdbcTemplate, times(1)).update(anyString(), any(), any(), any(), any(), any(), any(), any(), any());
-    }
-
-    // ============================
-    // DELETE
-    // ============================
-    @Test
-    void testDelete_Success() {
-        when(jdbcTemplate.update(anyString(), anyLong()))
-                .thenReturn(1);
-
-        batchDao.delete(1L);
-
-        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
-    }
-
-    @Test
-    void testDelete_NoRowsDeleted() {
-        when(jdbcTemplate.update(anyString(), anyLong()))
-                .thenReturn(0);
-
-        batchDao.delete(1L);
-
-        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
-    }
-
-    // ============================
-    // DECREMENT SEATS
-    // ============================
-    @Test
-    void testDecrementSeats_Success() {
-        when(jdbcTemplate.update(anyString(), eq(1L)))
-                .thenReturn(1);
-
-        batchDao.decrementAvailableSeats(1L);
-
-        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
-    }
-
-    @Test
-    void testDecrementSeats_NoChange() {
-        when(jdbcTemplate.update(anyString(), eq(1L)))
-                .thenReturn(0);
-
-        batchDao.decrementAvailableSeats(1L);
-
-        verify(jdbcTemplate, times(1)).update(anyString(), eq(1L));
+        assertTrue(list.isEmpty());
     }
 }
