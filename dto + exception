@@ -1,0 +1,869 @@
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+import java.sql.Date;
+
+public class AttendanceDto {
+
+    
+
+	@NotNull(message = "User ID is required")
+    private Long userId;
+
+    @NotNull(message = "Batch code is required")
+    private Long batchCode;
+
+    @NotNull(message = "Date is required")
+    private Date date;
+
+    @NotNull(message = "Attendance status is required (true/false)")
+    private Boolean present;
+
+    public AttendanceDto() {}
+
+    public AttendanceDto(@NotNull(message = "User ID is required") Long userId,
+			@NotNull(message = "Batch code is required") Long batchCode,
+			@NotNull(message = "Date is required") Date date,
+			@NotNull(message = "Attendance status is required (true/false)") Boolean present) {
+		super();
+		this.userId = userId;
+		this.batchCode = batchCode;
+		this.date = date;
+		this.present = present;
+	}
+
+    // Getters & Setters
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getBatchCode() {
+        return batchCode;
+    }
+
+    public void setBatchCode(Long batchCode) {
+        this.batchCode = batchCode;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Boolean getPresent() {
+        return present;
+    }
+
+    public void setPresent(Boolean present) {
+        this.present = present;
+    }
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+import java.sql.Date;
+
+public class BatchDto {
+
+	@NotBlank(message = "Batch name is required")
+	private String batchName;
+
+	@NotBlank(message = "Course name is required")
+	private String courseName;
+
+	@NotNull(message = "Trainer ID is required")
+	@Min(value = 1, message = "Trainer ID must be > 0")
+	private Long trainerId;
+
+	@NotNull(message = "Start date is required")
+	private Date startDate;
+
+	@NotNull(message = "End date is required")
+	private Date endDate;
+
+	@NotNull(message = "Total seats are required")
+	@Min(value = 1, message = "Total seats must be >= 1")
+	private Integer totalSeats;
+
+	@NotNull(message = "Available seats are required")
+	@Min(value = 0, message = "Available seats cannot be negative")
+	private Integer availableSeats;
+
+	public BatchDto() {
+	}
+
+	public BatchDto(@NotBlank(message = "Batch name is required") String batchName,
+			@NotBlank(message = "Course name is required") String courseName,
+			@NotNull(message = "Trainer ID is required") @Min(value = 1, message = "Trainer ID must be > 0") Long trainerId,
+			@NotNull(message = "Start date is required") Date startDate,
+			@NotNull(message = "End date is required") Date endDate,
+			@NotNull(message = "Total seats are required") @Min(value = 1, message = "Total seats must be >= 1") Integer totalSeats,
+			@NotNull(message = "Available seats are required") @Min(value = 0, message = "Available seats cannot be negative") Integer availableSeats) {
+		super();
+		this.batchName = batchName;
+		this.courseName = courseName;
+		this.trainerId = trainerId;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.totalSeats = totalSeats;
+		this.availableSeats = availableSeats;
+	}
+
+	// getters & setters
+	public String getBatchName() {
+		return batchName;
+	}
+
+	public void setBatchName(String batchName) {
+		this.batchName = batchName;
+	}
+
+	public String getCourseName() {
+		return courseName;
+	}
+
+	public void setCourseName(String courseName) {
+		this.courseName = courseName;
+	}
+
+	public Long getTrainerId() {
+		return trainerId;
+	}
+
+	public void setTrainerId(Long trainerId) {
+		this.trainerId = trainerId;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public Integer getTotalSeats() {
+		return totalSeats;
+	}
+
+	public void setTotalSeats(Integer totalSeats) {
+		this.totalSeats = totalSeats;
+	}
+
+	public Integer getAvailableSeats() {
+		return availableSeats;
+	}
+
+	public void setAvailableSeats(Integer availableSeats) {
+		this.availableSeats = availableSeats;
+	}
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public class CreateAdminDto {
+
+    @NotBlank(message = "Admin name is required")
+    private String userName;
+
+    @Email(message = "Valid email is required")
+    @NotBlank(message = "Email is required")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    // Getters & setters
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+
+public class FeedbackDto {
+
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
+    @NotBlank(message = "User name is required")
+    private String userName;
+
+    @NotNull(message = "Batch code is required")
+    private Long batchCode;
+
+//    @NotNull(message = "Trainer ID is required") // ⭐ NEW
+    private Long trainerId;
+
+    @NotBlank(message = "Trainer name is required")
+    private String trainerName;
+
+    @NotBlank(message = "Feedback cannot be empty")
+    private String feedback;
+
+    @NotNull(message = "Rating is required")
+    @Min(value = 1)
+    @Max(value = 5)
+    private Integer rating;
+
+    public FeedbackDto() {}
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
+    public Long getBatchCode() { return batchCode; }
+    public void setBatchCode(Long batchCode) { this.batchCode = batchCode; }
+
+    public Long getTrainerId() { return trainerId; } // ⭐ getter added
+    public void setTrainerId(Long trainerId) { this.trainerId = trainerId; } // ⭐ setter added
+
+    public String getTrainerName() { return trainerName; }
+    public void setTrainerName(String trainerName) { this.trainerName = trainerName; }
+
+    public String getFeedback() { return feedback; }
+    public void setFeedback(String feedback) { this.feedback = feedback; }
+
+    public Integer getRating() { return rating; }
+    public void setRating(Integer rating) { this.rating = rating; }
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public class LoginRequest {
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    public LoginRequest() {}
+
+    public LoginRequest(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+    // getters & setters
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+
+public class PerformanceDto {
+
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
+    @NotNull(message = "Trainer ID is required")
+    private Long trainerId;
+
+    @NotNull(message = "Batch Code is required") // NEW
+    private Long batchCode;
+
+    @NotBlank(message = "Trainer name is required") // NEW
+    private String trainerName;
+
+    @NotBlank(message = "Remarks cannot be empty")
+    private String remarks;
+
+    @NotNull(message = "Task score is required")
+    @Min(value = 0, message = "Score must be >= 0")
+    @Max(value = 100, message = "Score must be <= 100")
+    private Integer taskEvaluationScore;
+
+    public PerformanceDto() {}
+
+    public PerformanceDto(Long userId, Long trainerId, Long batchCode, String trainerName,
+                          String remarks, Integer taskEvaluationScore) {
+        this.userId = userId;
+        this.trainerId = trainerId;
+        this.batchCode = batchCode;
+        this.trainerName = trainerName;
+        this.remarks = remarks;
+        this.taskEvaluationScore = taskEvaluationScore;
+    }
+
+    // Getters & Setters
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public Long getTrainerId() { return trainerId; }
+    public void setTrainerId(Long trainerId) { this.trainerId = trainerId; }
+
+    public Long getBatchCode() { return batchCode; }
+    public void setBatchCode(Long batchCode) { this.batchCode = batchCode; }
+
+    public String getTrainerName() { return trainerName; }
+    public void setTrainerName(String trainerName) { this.trainerName = trainerName; }
+
+    public String getRemarks() { return remarks; }
+    public void setRemarks(String remarks) { this.remarks = remarks; }
+
+    public Integer getTaskEvaluationScore() { return taskEvaluationScore; }
+    public void setTaskEvaluationScore(Integer taskEvaluationScore) { this.taskEvaluationScore = taskEvaluationScore; }
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+
+public class RegisterTrainerDto {
+
+   
+	@NotBlank(message = "Trainer name is required")
+    private String name;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter valid email")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    @NotBlank(message = "Contact number is required")
+    private String contact;
+
+    @NotBlank(message = "Experience field is required")
+    private String experience;
+
+    @NotBlank(message = "Skills field is required")
+    private String skills;
+
+    private String profilePic;
+
+    @NotBlank(message = "Bio is required")
+    private String bio;
+
+    public RegisterTrainerDto() {}
+    public RegisterTrainerDto(@NotBlank(message = "Trainer name is required") String name,
+			@NotBlank(message = "Email is required") @Email(message = "Enter valid email") String email,
+			@NotBlank(message = "Password is required") String password,
+			@NotBlank(message = "Contact number is required") String contact,
+			@NotBlank(message = "Experience field is required") String experience,
+			@NotBlank(message = "Skills field is required") String skills, String profilePic,
+			@NotBlank(message = "Bio is required") String bio) {
+		super();
+		this.name = name;
+		this.email = email;
+		this.password = password;
+		this.contact = contact;
+		this.experience = experience;
+		this.skills = skills;
+		this.profilePic = profilePic;
+		this.bio = bio;
+	}
+    // getters + setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getContact() { return contact; }
+    public void setContact(String contact) { this.contact = contact; }
+
+    public String getExperience() { return experience; }
+    public void setExperience(String experience) { this.experience = experience; }
+
+    public String getSkills() { return skills; }
+    public void setSkills(String skills) { this.skills = skills; }
+
+    public String getProfilePic() { return profilePic; }
+    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+import java.sql.Date;
+
+public class RegisterUserDto {
+
+    
+	@NotBlank(message = "User name is required")
+    private String userName;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Enter a valid email")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    @NotNull(message = "Date of birth is required")
+    private Date dob;
+
+    @NotBlank(message = "Contact number is required")
+    private String contactNo;
+
+    @NotBlank(message = "Address is required")
+    private String address;
+
+    @NotBlank(message = "College name is required")
+    private String collegeName;
+
+    @NotBlank(message = "Grade is required")
+    private String grade;
+
+    @NotBlank(message = "Major is required")
+    private String major;
+
+    @NotBlank(message = "Team selection is required")
+    private String team;
+    
+    @NotNull(message = "batch Code is required")
+    private Long batchCode;
+    		
+    @NotNull(message = "Start date is required")
+    private Date startDate;
+
+    @NotNull(message = "End date is required")
+    private Date endDate;
+
+    @NotNull(message = "Graduating year is required")
+    @Min(value = 2020, message = "Graduating year must be >= 2020")
+    private Integer graduatingYear;
+
+    @NotBlank(message = "Resume URL/path is required")
+    private String resume;
+
+    private String profilePic;
+
+    public RegisterUserDto() {}
+    
+    
+    public RegisterUserDto(@NotBlank(message = "User name is required") String userName,
+			@NotBlank(message = "Email is required") @Email(message = "Enter a valid email") String email,
+			@NotBlank(message = "Password is required") String password,
+			@NotNull(message = "Date of birth is required") Date dob,
+			@NotBlank(message = "Contact number is required") String contactNo,
+			@NotBlank(message = "Address is required") String address,
+			@NotBlank(message = "College name is required") String collegeName,
+			@NotBlank(message = "Grade is required") String grade,
+			@NotBlank(message = "Major is required") String major,
+			@NotBlank(message = "Team selection is required") String team,
+			@NotBlank(message = "batch Code selection is required") Long batchCode,
+			@NotNull(message = "Start date is required") Date startDate,
+			@NotNull(message = "End date is required") Date endDate,
+			@NotNull(message = "Graduating year is required") @Min(value = 2020, message = "Graduating year must be >= 2020") Integer graduatingYear,
+			@NotBlank(message = "Resume URL/path is required") String resume, String profilePic) {
+		super();
+		this.userName = userName;
+		this.email = email;
+		this.password = password;
+		this.dob = dob;
+		this.contactNo = contactNo;
+		this.address = address;
+		this.collegeName = collegeName;
+		this.grade = grade;
+		this.major = major;
+		this.team = team;
+		this.batchCode = batchCode;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.graduatingYear = graduatingYear;
+		this.resume = resume;
+		this.profilePic = profilePic;
+	}
+
+    // constructor + getters + setters
+    // ... (same as previous but unchanged)
+    
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public Date getDob() { return dob; }
+    public void setDob(Date dob) { this.dob = dob; }
+
+    public String getContactNo() { return contactNo; }
+    public void setContactNo(String contactNo) { this.contactNo = contactNo; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getCollegeName() { return collegeName; }
+    public void setCollegeName(String collegeName) { this.collegeName = collegeName; }
+
+    public String getGrade() { return grade; }
+    public void setGrade(String grade) { this.grade = grade; }
+
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
+
+    public String getTeam() { return team; }
+    public void setTeam(String team) { this.team = team; }
+
+    public Date getStartDate() { return startDate; }
+    public void setStartDate(Date startDate) { this.startDate = startDate; }
+
+    public Date getEndDate() { return endDate; }
+    public void setEndDate(Date endDate) { this.endDate = endDate; }
+
+    public Integer getGraduatingYear() { return graduatingYear; }
+    public void setGraduatingYear(Integer graduatingYear) { this.graduatingYear = graduatingYear; }
+
+    public String getResume() { return resume; }
+    public void setResume(String resume) { this.resume = resume; }
+
+    public String getProfilePic() { return profilePic; }
+    public void setProfilePic(String profilePic) { this.profilePic = profilePic; }
+
+
+	public Long getBatchCode() {
+		return batchCode;
+	}
+
+
+	public void setBatchCode(Long batchCode) {
+		this.batchCode = batchCode;
+	}
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+
+public class StipendDto {
+
+	@NotNull(message = "User ID is required")
+	private Long userId;
+
+	@NotBlank(message = "User name is required")
+	private String userName;
+
+	@NotBlank(message = "Payment mode is required")
+	private String paymentMode;
+
+	@NotNull(message = "Amount is required")
+	@DecimalMin(value = "1.0", message = "Amount must be greater than 0")
+	private Double amount;
+
+	public StipendDto() {
+	}
+
+	public StipendDto(@NotNull(message = "User ID is required") Long userId,
+			@NotBlank(message = "User name is required") String userName,
+			@NotBlank(message = "Payment mode is required") String paymentMode,
+			@NotNull(message = "Amount is required") @DecimalMin(value = "1.0", message = "Amount must be greater than 0") Double amount) {
+		super();
+		this.userId = userId;
+		this.userName = userName;
+		this.paymentMode = paymentMode;
+		this.amount = amount;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPaymentMode() {
+		return paymentMode;
+	}
+
+	public void setPaymentMode(String paymentMode) {
+		this.paymentMode = paymentMode;
+	}
+
+	public Double getAmount() {
+		return amount;
+	}
+
+	public void setAmount(Double amount) {
+		this.amount = amount;
+	}
+
+	// getters & setters
+}
+package com.finalproject.internMgmtSystem.dto;
+
+import jakarta.validation.constraints.*;
+import java.sql.Date;
+
+public class TaskDto {
+
+	@NotNull(message = "User ID is required")
+	private Long userId;
+
+	@NotBlank(message = "Task description is required")
+	private String description;
+
+	@NotNull(message = "Trainer ID is required")
+	private Long trainerId;
+
+	@NotBlank(message = "Status is required")
+	private String status;
+
+	@NotNull(message = "Deadline is required")
+	private Date deadline;
+
+	private String uploadFile;
+
+	public TaskDto() {
+	}
+
+	public TaskDto(@NotNull(message = "User ID is required") Long userId,
+			@NotBlank(message = "Task description is required") String description,
+			@NotNull(message = "Trainer ID is required") Long trainerId,
+			@NotBlank(message = "Status is required") String status,
+			@NotNull(message = "Deadline is required") Date deadline, String uploadFile) {
+		super();
+		this.userId = userId;
+		this.description = description;
+		this.trainerId = trainerId;
+		this.status = status;
+		this.deadline = deadline;
+		this.uploadFile = uploadFile;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public Long getTrainerId() {
+		return trainerId;
+	}
+
+	public void setTrainerId(Long trainerId) {
+		this.trainerId = trainerId;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public Date getDeadline() {
+		return deadline;
+	}
+
+	public void setDeadline(Date deadline) {
+		this.deadline = deadline;
+	}
+
+	public String getUploadFile() {
+		return uploadFile;
+	}
+
+	public void setUploadFile(String uploadFile) {
+		this.uploadFile = uploadFile;
+	}
+
+	// getters & setters
+}
+package com.finalproject.internMgmtSystem.dto;
+
+public class UserBatchDto {
+	public Long userId;
+	private String userName;
+	private String email;
+	private String contactNo;
+	private String batchCode;
+	private String batchName;
+	private String courseName;
+	private int trainerId;
+
+	// Getters and Setters
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getContactNo() {
+		return contactNo;
+	}
+
+	public void setContactNo(String contactNo) {
+		this.contactNo = contactNo;
+	}
+
+	public String getBatchCode() {
+		return batchCode;
+	}
+
+	public void setBatchCode(String batchCode) {
+		this.batchCode = batchCode;
+	}
+
+	public String getBatchName() {
+		return batchName;
+	}
+
+	public void setBatchName(String batchName) {
+		this.batchName = batchName;
+	}
+
+	public String getCourseName() {
+		return courseName;
+	}
+
+	public void setCourseName(String courseName) {
+		this.courseName = courseName;
+	}
+
+	public int getTrainerId() {
+		return trainerId;
+	}
+
+	public void setTrainerId(int trainerId) {
+		this.trainerId = trainerId;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+}
+package com.finalproject.internMgmtSystem.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    // Handle Resource Not Found
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> resourceNotFound(ResourceNotFoundException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    // Handle User Already Exists
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<?> userExists(UserAlreadyExistsException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle Validation Errors (@Valid)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> validationError(MethodArgumentNotValidException ex) {
+
+        Map<String, Object> body = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors().forEach(err -> {
+            body.put(err.getField(), err.getDefaultMessage());
+        });
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle All Other Exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> globalException(Exception ex) {
+        ex.printStackTrace(); // Useful for debugging
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+package com.finalproject.internMgmtSystem.exception;
+
+public class ResourceNotFoundException extends RuntimeException {
+
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
+package com.finalproject.internMgmtSystem.exception;
+
+public class UserAlreadyExistsException extends RuntimeException {
+
+    public UserAlreadyExistsException(String message) {
+        super(message);
+    }
+}
