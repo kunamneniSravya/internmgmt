@@ -1,130 +1,176 @@
-@Test
-void testGetStipendHistory_Empty() {
-    when(stipendDao.findByUserId(1L)).thenReturn(List.of());
+package com.finalproject.internMgmtSystem.controller;
 
-    List<Stipend> list = userService.getStipendHistory(1L);
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finalproject.internMgmtSystem.dto.BatchDto;
+import com.finalproject.internMgmtSystem.dto.RegisterTrainerDto;
+import com.finalproject.internMgmtSystem.dto.StipendDto;
+import com.finalproject.internMgmtSystem.model.*;
+import com.finalproject.internMgmtSystem.service.AdminService;
+import org.junit.jupiter.api.*;
+import org.mockito.*;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-    assertTrue(list.isEmpty());
-    verify(stipendDao).findByUserId(1L);
+import java.sql.Date;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+class AdminControllerTest {
+
+    private MockMvc mockMvc;
+
+    @Mock
+    private AdminService adminService;
+
+    @InjectMocks
+    private AdminController adminController;
+
+    private ObjectMapper mapper = new ObjectMapper();
+
+    private Trainer trainer;
+    private Batch batch;
+    private Stipend stipend;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(adminController).build();
+
+        trainer = new Trainer();
+        trainer.setTrainerId(10L);
+        trainer.setName("Trainer A");
+        trainer.setEmail("t@mail.com");
+        trainer.setContact("123");
+        trainer.setSkills("Java");
+
+        batch = new Batch();
+        batch.setBatchCode(101L);
+        batch.setBatchName("Java Batch");
+        batch.setCourseName("Java");
+        batch.setTrainerId(10L);
+
+        stipend = new Stipend();
+        stipend.setId(1L);
+        stipend.setUserId(1L);
+        stipend.setAmount(2000.0);
+    }
+
+    @Test
+    void testAddTrainer_Success() throws Exception {
+        RegisterTrainerDto dto = new RegisterTrainerDto("Trainer A", "t@mail.com", "123", "123", "2 yrs", "Java", null, "Bio");
+        when(adminService.addTrainer(any(RegisterTrainerDto.class))).thenReturn(trainer);
+
+        mockMvc.perform(post("/api/admin/trainers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.trainerId").value(10))
+                .andExpect(jsonPath("$.name").value("Trainer A"));
+
+        verify(adminService).addTrainer(any(RegisterTrainerDto.class));
+    }
+
+    @Test
+    void testAddTrainer_Failure() throws Exception {
+        RegisterTrainerDto dto = new RegisterTrainerDto("Trainer A", "t@mail.com", "123", "123", "2 yrs", "Java", null, "Bio");
+        when(adminService.addTrainer(any(RegisterTrainerDto.class))).thenThrow(new RuntimeException("Failed"));
+
+        mockMvc.perform(post("/api/admin/trainers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+
+        verify(adminService).addTrainer(any(RegisterTrainerDto.class));
+    }
+
+    @Test
+    void testCreateBatch_Success() throws Exception {
+        BatchDto dto = new BatchDto("Java Batch", "Java", 10L,
+                Date.valueOf("2025-01-01"), Date.valueOf("2025-03-01"), 30, 5);
+
+        when(adminService.createBatch(any(BatchDto.class))).thenReturn(batch);
+
+        mockMvc.perform(post("/api/admin/batches")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.batchCode").value(101))
+                .andExpect(jsonPath("$.batchName").value("Java Batch"));
+
+        verify(adminService).createBatch(any(BatchDto.class));
+    }
+
+    @Test
+    void testCreateBatch_Failure() throws Exception {
+        BatchDto dto = new BatchDto("Java Batch", "Java", 10L,
+                Date.valueOf("2025-01-01"), Date.valueOf("2025-03-01"), 30, 5);
+
+        when(adminService.createBatch(any(BatchDto.class))).thenThrow(new RuntimeException("Batch creation failed"));
+
+        mockMvc.perform(post("/api/admin/batches")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+
+        verify(adminService).createBatch(any(BatchDto.class));
+    }
+
+    @Test
+    void testAddStipend_Success() throws Exception {
+        StipendDto dto = new StipendDto(1L, "User", "Cash", 2000.0);
+
+        when(adminService.addStipend(any(StipendDto.class))).thenReturn(stipend);
+
+        mockMvc.perform(post("/api/admin/stipends")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.amount").value(2000.0));
+
+        verify(adminService).addStipend(any(StipendDto.class));
+    }
+
+    @Test
+    void testAddStipend_Failure() throws Exception {
+        StipendDto dto = new StipendDto(1L, "User", "Cash", 2000.0);
+
+        when(adminService.addStipend(any(StipendDto.class))).thenThrow(new RuntimeException("Failed"));
+
+        mockMvc.perform(post("/api/admin/stipends")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isInternalServerError());
+
+        verify(adminService).addStipend(any(StipendDto.class));
+    }
+
+    @Test
+    void testGetAllTrainers() throws Exception {
+        when(adminService.getAllTrainers()).thenReturn(List.of(trainer));
+
+        mockMvc.perform(get("/api/admin/trainers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
+
+        verify(adminService).getAllTrainers();
+    }
+
+    @Test
+    void testGetAllTrainers_Empty() throws Exception {
+        when(adminService.getAllTrainers()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/admin/trainers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(0));
+
+        verify(adminService).getAllTrainers();
+    }
+
+    @Disabled("skip")
+    @Test
+    void disabledTest() {}
 }
-
-
-@Test
-void testGetStipendHistory_NotFound() {
-    when(stipendDao.findByUserId(1L)).thenReturn(List.of());
-
-    assertThrows(ResourceNotFoundException.class,
-            () -> userService.getStipendHistory(1L));
-
-    verify(stipendDao).findByUserId(1L);
-}
-
-Perfect — that means your UserService DOES NOT throw exceptions for empty results,
-so the correct negative tests = EMPTY LIST tests (NOT exceptions).
-
-Your service methods are:
-
-return taskDao.findByUserId(userId);       // no exception
-return performanceDao.findByUserId(userId);
-return stipendDao.findByUserId(userId);
-return attendanceDao.findByUserId(userId);
-
-So the only correct negative test case is:
-
-✔ DAO returns empty
-✔ Service returns empty
-✔ No exceptions
-
-Below are the final correct negative test cases that you MUST keep
-(these will NOT fail).
-
-
----
-
-✅ FINAL NEGATIVE TEST CASES — WORKING VERSION
-
-❌ getTasks – Negative Case (Empty Result)
-
-@Test
-void testGetTasks_Empty() {
-    when(taskDao.findByUserId(1L)).thenReturn(List.of());
-
-    List<Task> list = userService.getTasks(1L);
-
-    assertTrue(list.isEmpty());
-    verify(taskDao).findByUserId(1L);
-}
-
-
----
-
-❌ getPerformance – Negative Case (Empty Result)
-
-@Test
-void testGetPerformance_Empty() {
-    when(performanceDao.findByUserId(1L)).thenReturn(List.of());
-
-    List<Performance> list = userService.getPerformance(1L);
-
-    assertTrue(list.isEmpty());
-    verify(performanceDao).findByUserId(1L);
-}
-
-
----
-
-❌ getStipendHistory – Negative Case (Empty Result)
-
-@Test
-void testGetStipendHistory_Empty() {
-    when(stipendDao.findByUserId(1L)).thenReturn(List.of());
-
-    List<Stipend> list = userService.getStipendHistory(1L);
-
-    assertTrue(list.isEmpty());
-    verify(stipendDao).findByUserId(1L);
-}
-
-
----
-
-❌ getAttendance – Negative Case (Empty Result)
-
-@Test
-void testGetAttendance_Empty() {
-    when(attendanceDao.findByUserId(1L)).thenReturn(List.of());
-
-    List<Attendance> list = userService.getAttendance(1L);
-
-    assertTrue(list.isEmpty());
-    verify(attendanceDao).findByUserId(1L);
-}
-
-
----
-
-🎯 WHY EXCEPTION TESTS FAIL FOR YOU
-
-Because your service NEVER throws exceptions for empty lists.
-So:
-
-❌ NOT FOUND negative tests
-➡️ will always fail
-
-✔ EMPTY LIST negative tests
-➡️ always pass
-
-This is the correct behavior based on your service logic.
-
-
----
-
-If you want, I can regenerate your entire UserServiceTest file with:
-
-✔ Positive cases
-✔ Negative (empty) cases
-✔ Parameterized test
-✔ Disabled test
-✔ verify() everywhere
-
-Just say “Regenerate full UserServiceTest”.
