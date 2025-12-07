@@ -1,1 +1,8 @@
-
+@Test
+void debug_printTasks() throws Exception {
+    mockMvc.perform(get("/api/user/1/tasks"))
+            .andExpect(status().isOk())
+            .andDo(result -> {
+                System.out.println("RESPONSE: " + result.getResponse().getContentAsString());
+            });
+}
