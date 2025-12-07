@@ -1,4 +1,7 @@
-
+INSERT INTO users (user_id, user_name, email, password, role)
+VALUES (1, 'Test User', 'sravya@user.com',
+'$2a$10$Dow1YOGS2/MEGLjmVnTQPuGcDeihdj5Z8SGvtQvV4H14R/2uOeGdy',
+'USER');
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
