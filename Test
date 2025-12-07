@@ -1,16 +1,1 @@
-INSERT INTO trainers VALUES
-(1, 'John Miller', 'john@trainer.com', 'pass123', '9876543210', '5 Years',
- 'Java, Spring', NULL, 'Senior Trainer', 'TRAINER', CURRENT_TIMESTAMP);
 
-INSERT INTO internship_batches VALUES
-(1001, 'Java Full Stack', 'Java', 1, '2025-12-01', '2026-03-01', 30, 25);
-
-INSERT INTO users VALUES
-(1, 'Sravya', 'sravya@user.com',
-'$2a$10$Dow1YOGS2/MEGLjmVnTQPuGcDeihdj5Z8SGvtQvV4H14R/2uOeGdy',
-'2002-05-10', '9876543210', 'Chennai', 'Vel Tech', 'A', 'CSE',
-'Backend', 1001, '2025-01-01', '2025-03-01', 2025, 'resume.pdf',
-NULL, 'USER', CURRENT_TIMESTAMP);
-
-INSERT INTO users (user_id, user_name, email, password, role)
-VALUES (99, 'Test Admin', 'existing@admin.com', '$2a$10$Dow1YOGS2/MEGLjmVnTQPuGcDeihdj5Z8SGvtQvV4H14R/2uOeGdy', 'ADMIN');
