@@ -1,8 +1,444 @@
-@Test
-void debug_printTasks() throws Exception {
-    mockMvc.perform(get("/api/user/1/tasks"))
-            .andExpect(status().isOk())
-            .andDo(result -> {
-                System.out.println("RESPONSE: " + result.getResponse().getContentAsString());
-            });
-}
+09:11:16.779 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.finalproject.internMgmtSystem.integration.UserControllerIntegrationTest]: UserControllerIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+09:11:17.037 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.finalproject.internMgmtSystem.InternMgmtSystemApplication for test class com.finalproject.internMgmtSystem.integration.UserControllerIntegrationTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.1.2)
+
+2025-12-07T09:11:18.341+05:30  INFO 31904 --- [           main] c.f.i.i.UserControllerIntegrationTest    : Starting UserControllerIntegrationTest using Java 17.0.1 with PID 31904 (started by 703439995 in C:\Java Training\internMgmtSystem)
+2025-12-07T09:11:18.344+05:30  INFO 31904 --- [           main] c.f.i.i.UserControllerIntegrationTest    : No active profile set, falling back to 1 default profile: "default"
+2025-12-07T09:11:20.369+05:30  INFO 31904 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-12-07T09:11:20.464+05:30  INFO 31904 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 61 ms. Found 0 JPA repository interfaces.
+2025-12-07T09:11:21.786+05:30  INFO 31904 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-12-07T09:11:22.326+05:30  INFO 31904 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@902fdbe
+2025-12-07T09:11:22.328+05:30  INFO 31904 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-12-07T09:11:22.609+05:30  INFO 31904 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-12-07T09:11:23.003+05:30  INFO 31904 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.2.6.Final
+2025-12-07T09:11:23.011+05:30  INFO 31904 --- [           main] org.hibernate.cfg.Environment            : HHH000406: Using bytecode reflection optimizer
+2025-12-07T09:11:23.542+05:30  INFO 31904 --- [           main] o.h.b.i.BytecodeProviderInitiator        : HHH000021: Bytecode provider name : bytebuddy
+2025-12-07T09:11:23.784+05:30  INFO 31904 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-12-07T09:11:23.958+05:30  INFO 31904 --- [           main] o.h.b.i.BytecodeProviderInitiator        : HHH000021: Bytecode provider name : bytebuddy
+2025-12-07T09:11:24.208+05:30  INFO 31904 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-12-07T09:11:24.213+05:30  INFO 31904 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-12-07T09:11:24.735+05:30  WARN 31904 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-12-07T09:11:25.223+05:30  INFO 31904 --- [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@66b90ab3, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@16e4db59, org.springframework.security.web.context.SecurityContextHolderFilter@388e4c25, org.springframework.security.web.header.HeaderWriterFilter@4bb9f7d4, org.springframework.web.filter.CorsFilter@33fec21, org.springframework.security.web.authentication.logout.LogoutFilter@4ebd8d2, com.finalproject.internMgmtSystem.security.JwtAuthenticationFilter@75f32817, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@401b67a9, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@148fca83, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@12a0d249, org.springframework.security.web.session.SessionManagementFilter@12270a01, org.springframework.security.web.access.ExceptionTranslationFilter@15ad5acb, org.springframework.security.web.access.intercept.AuthorizationFilter@cef885d]
+2025-12-07T09:11:26.997+05:30  INFO 31904 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2025-12-07T09:11:26.998+05:30  INFO 31904 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2025-12-07T09:11:27.000+05:30  INFO 31904 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 2 ms
+2025-12-07T09:11:27.086+05:30  INFO 31904 --- [           main] c.f.i.i.UserControllerIntegrationTest    : Started UserControllerIntegrationTest in 9.654 seconds (process running for 11.461)
+2025-12-07T09:11:29.453+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.454+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM users WHERE user_id = ?]
+2025-12-07T09:11:29.488+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [11], value class [java.lang.Long], SQL type unknown
+2025-12-07T09:11:29.557+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.557+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC]
+2025-12-07T09:11:29.557+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [999], value class [java.lang.Long], SQL type unknown
+2025-12-07T09:11:29.697+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.698+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM users WHERE email = ?]
+2025-12-07T09:11:29.699+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [sravya@user.com], value class [java.lang.String], SQL type unknown
+2025-12-07T09:11:29.705+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.705+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT b.*, t.name AS trainer_name
+FROM internship_batches b
+JOIN trainers t ON b.trainer_id = t.trainer_id
+WHERE b.batch_code = ?
+]
+2025-12-07T09:11:29.705+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1], value class [java.lang.Long], SQL type unknown
+2025-12-07T09:11:29.716+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.716+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT b.*, t.name AS trainer_name
+FROM internship_batches b
+JOIN trainers t ON b.trainer_id = t.trainer_id
+WHERE b.batch_code = ?
+]
+2025-12-07T09:11:29.716+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [9999], value class [java.lang.Long], SQL type unknown
+2025-12-07T09:11:29.725+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.725+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC]
+2025-12-07T09:11:29.725+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/user/1/tasks
+       Parameters = {}
+          Headers = []
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#getTasks(Long)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = []
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.744+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.744+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM performance WHERE user_id = ? ORDER BY created_at DESC]
+2025-12-07T09:11:29.745+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [999], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/user/999/performance
+       Parameters = {}
+          Headers = []
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#getPerformance(Long)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = []
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.780+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.780+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM performance WHERE user_id = ? ORDER BY created_at DESC]
+2025-12-07T09:11:29.780+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/user/1/performance
+       Parameters = {}
+          Headers = []
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#getPerformance(Long)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = []
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.795+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.795+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM stipend WHERE user_id = ? ORDER BY payment_date DESC]
+2025-12-07T09:11:29.796+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [999], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/user/999/stipends
+       Parameters = {}
+          Headers = []
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#getStipends(Long)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = []
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.818+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.818+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM users WHERE email = ?]
+2025-12-07T09:11:29.818+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [u@mail.com], value class [java.lang.String], SQL type unknown
+2025-12-07T09:11:29.820+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.821+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT b.*, t.name AS trainer_name
+FROM internship_batches b
+JOIN trainers t ON b.trainer_id = t.trainer_id
+WHERE b.batch_code = ?
+]
+2025-12-07T09:11:29.821+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [11], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/user/register
+       Parameters = {}
+          Headers = [Content-Type:"application/json", Content-Length:"283"]
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#register(RegisterUserDto)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = com.finalproject.internMgmtSystem.exception.ResourceNotFoundException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 404
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"error":"Batch not found with code: 11"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.842+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.842+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM stipend WHERE user_id = ? ORDER BY payment_date DESC]
+2025-12-07T09:11:29.843+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/user/1/stipends
+       Parameters = {}
+          Headers = []
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#getStipends(Long)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = [{"id":2,"userId":1,"userName":"sravya","paymentDate":"2025-12-02T10:59:21.000+00:00","paymentMode":"UPI","amount":20000.0},{"id":1,"userId":1,"userName":"Sravy","paymentDate":"2025-11-25T01:22:50.000+00:00","paymentMode":"Bank Transfer","amount":500.0}]
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.901+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.902+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM users WHERE user_id = ?]
+2025-12-07T09:11:29.903+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1], value class [java.lang.Long], SQL type unknown
+2025-12-07T09:11:29.910+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.911+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT b.*, t.name AS trainer_name
+FROM internship_batches b
+JOIN trainers t ON b.trainer_id = t.trainer_id
+WHERE b.batch_code = ?
+]
+2025-12-07T09:11:29.911+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [0], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/user/feedback
+       Parameters = {}
+          Headers = [Content-Type:"application/json", Content-Length:"120"]
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#submitFeedback(FeedbackDto)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = com.finalproject.internMgmtSystem.exception.ResourceNotFoundException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 404
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"error":"Batch not found"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.944+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.944+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM attendance WHERE user_id = ? ORDER BY date DESC]
+2025-12-07T09:11:29.945+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/user/1/attendance
+       Parameters = {}
+          Headers = []
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#getAttendance(Long)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = []
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.963+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.963+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT b.*, t.name AS trainer_name
+FROM internship_batches b
+JOIN trainers t ON b.trainer_id = t.trainer_id
+WHERE b.batch_code = ?
+]
+2025-12-07T09:11:29.964+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1001], value class [java.lang.Long], SQL type unknown
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/user/batch/1001
+       Parameters = {}
+          Headers = []
+             Body = <no character encoding set>
+    Session Attrs = {}
+
+Handler:
+             Type = com.finalproject.internMgmtSystem.controller.UserController
+           Method = com.finalproject.internMgmtSystem.controller.UserController#getBatchDetails(Long)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = com.finalproject.internMgmtSystem.exception.ResourceNotFoundException
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 404
+    Error message = null
+          Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/json"]
+     Content type = application/json
+             Body = {"error":"Batch not found with code: 1001"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+2025-12-07T09:11:29.977+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-12-07T09:11:29.977+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC]
+2025-12-07T09:11:29.977+05:30 TRACE 31904 --- [           main] o.s.jdbc.core.StatementCreatorUtils      : Setting SQL statement parameter value: column index 1, parameter value [1], value class [java.lang.Long], SQL type unknown
+RESPONSE: []
+2025-12-07T09:11:29.991+05:30 DEBUG 31904 --- [           main] o.s.jdbc.core.JdbcTemplate               : Executing SQL query [SELECT b.*, t.name AS trainer_name
+FROM internship_batches b
+JOIN trainers t ON b.trainer_id = t.trainer_id
+]
+2025-12-07T09:11:30.062+05:30  INFO 31904 --- [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-12-07T09:11:30.068+05:30  INFO 31904 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-12-07T09:11:30.090+05:30  INFO 31904 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
