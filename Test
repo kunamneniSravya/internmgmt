@@ -71,3 +71,470 @@ export default function UserTasks() {
     </div>
   );
 }
+import React, { useEffect, useState } from "react";
+import { getUserPerformance, getBatchDetails } from "../../api/userApi";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import formatDate from "../../utils/formatDate";
+import "../../styles/performance.css";
+
+export default function UserPerformance() {
+  const userId = localStorage.getItem("userId");
+  const [perf, setPerf] = useState([]);
+  const [batchDetails, setBatchDetails] = useState(null);
+
+  const fetchBatchDetails = async (batchCode) => {
+    if (!batchCode) return;
+    try {
+      const res = await getBatchDetails(batchCode);
+      setBatchDetails(res.data);
+    } catch (err) {
+      console.error("Failed fetching batch details", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+    getUserPerformance(userId)
+      .then((res) => setPerf(res.data))
+      .catch((err) => console.error("API Error", err));
+  }, [userId]);
+
+  return (
+    <div className="layout">
+      <Navbar />
+      <Sidebar items={[{ to: "/user/dashboard", label: "Dashboard" }]} />
+
+      <div className="main">
+        <h2 className="title">📊 My Performance</h2>
+
+        {perf.length === 0 ? (
+          <p className="no-data">No performance records available.</p>
+        ) : (
+          <table className="table performance-table">
+            <thead>
+              <tr>
+                <th>Trainer</th>
+                <th>Batch</th>
+                <th>Score</th>
+                <th>Remarks</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {perf.map((p) => (
+                <tr key={p.id} onClick={() => fetchBatchDetails(p.batchCode)}>
+                  <td>{p.trainerName || "N/A"}</td>
+                  <td>{p.batchCode || "N/A"}</td>
+                  <td>
+                    <span
+                      className={`score-badge ${
+                        p.taskEvaluationScore >= 80
+                          ? "score-high"
+                          : p.taskEvaluationScore >= 50
+                          ? "score-medium"
+                          : "score-low"
+                      }`}
+                    >
+                      {p.taskEvaluationScore}
+                    </span>
+                  </td>
+                  <td>{p.remarks}</td>
+                  <td>{p.createdAt ? formatDate(p.createdAt) : "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {batchDetails && (
+          <div className="batch-card">
+            <h3>Batch Details</h3>
+
+            <p><strong>Batch Name:</strong> {batchDetails.batchName}</p>
+            <p><strong>Course:</strong> {batchDetails.courseName}</p>
+            <p><strong>Trainer ID:</strong> {batchDetails.trainerId}</p>
+            <p><strong>Start:</strong> {formatDate(batchDetails.startDate)}</p>
+            <p><strong>End:</strong> {formatDate(batchDetails.endDate)}</p>
+
+            <button className="btn-close" onClick={() => setBatchDetails(null)}>
+              Close
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+import React, { useEffect, useState } from "react";
+import { getUserStipends } from "../../api/userApi";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import formatDate from "../../utils/formatDate";
+import "../../styles/stipends.css";
+
+
+export default function UserStipends() {
+  const userId = localStorage.getItem("userId");
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    getUserStipends(userId).then(res => setData(res.data)).catch(console.error);
+  }, [userId]);
+
+  return (
+    <div className="layout">
+      <Navbar />
+      <Sidebar items={[{ to: "/user/dashboard", label: "Dashboard" }]} />
+      <div className="main">
+        <h3>My Stipends</h3>
+        {data.length === 0 ? "No stipend records" :
+          <table className="table">
+            <thead><tr><th>Amount</th><th>Mode</th><th>Date</th></tr></thead>
+            <tbody>
+              {data.map(s => (
+                <tr key={s.id}>
+                  <td>{s.amount}</td>
+                  <td>{s.paymentMode}</td>
+                  <td>{formatDate(s.paymentDate)}</td>
+                </tr>
+              ))}
+            </tbody>
+
+          </table>
+        }
+      </div>
+    </div>
+  );
+}
+import React, { useEffect, useState } from "react";
+import { getBatchDetails } from "../../api/userApi";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import { useParams } from "react-router-dom";
+import "../../styles/batchdetails.css";
+
+export default function BatchDetails() {
+  const { batchCode } = useParams();
+  const [batch, setBatch] = useState(null);
+
+  useEffect(() => {
+    const fetch = async () => {
+      if (!batchCode) return;
+      try {
+        const res = await getBatchDetails(batchCode);
+        setBatch(res.data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetch();
+  }, [batchCode]);
+
+  return (
+    <div className="layout">
+      <Navbar />
+      <Sidebar items={[{ to: "/user/dashboard", label: "Dashboard" }]} />
+      <div className="main">
+        <h3>Batch Details</h3>
+        {!batch ? <div>No batch found.</div> : (
+          <div>
+            <p><b>Name:</b> {batch.batchName}</p>
+            <p><b>Course:</b> {batch.courseName}</p>
+            <p><b>Trainer ID:</b> {batch.trainerId}</p>
+            <p><b>Seats:</b> {batch.availableSeats}/{batch.totalSeats}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+import React, { useEffect, useState } from "react";
+import { getUserAttendance } from "../../api/userApi";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import formatDate from "../../utils/formatDate";
+import "../../styles/attendance.css";
+
+export default function UserAttendance() {
+  const userId = localStorage.getItem("userId");
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    getUserAttendance(userId).then(res => setData(res.data)).catch(console.error);
+  }, [userId]);
+
+  return (
+    <div className="layout">
+      <Navbar />
+      <Sidebar items={[{ to: "/user/dashboard", label: "Dashboard" }]} />
+      <div className="main">
+        <h3>Attendance Record</h3>
+        {data.length === 0 ? "No attendance records" :
+          <table className="table">
+            <thead><tr><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              {data.map(a => (
+                <tr key={a.attendanceId}>
+                  <td>{formatDate(a.date)}</td>
+                  <td>{a.present ? "Present" : "Absent"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  );
+}
+import React from "react";
+import { Link } from "react-router-dom";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import "../../styles/dashboard.css";
+
+export default function UserDashboard() {
+  const items = [
+    { to: "/user/tasks", label: "My Tasks" },
+    { to: "/user/performance", label: "My Performance" },
+    { to: "/user/stipends", label: "My Stipends" },
+    { to: "/user/attendance", label: "My Attendance" },
+    { to: "/user/feedback", label: "Give Feedback" },
+  ];
+
+  return (
+    <div className="layout">
+      <Navbar />
+      <Sidebar items={items} />
+
+      <div className="main fadeIn">
+
+        {/* Header */}
+        <div className="dashboard-header">
+          <div className="page-title-block">
+            <h2 className="dash-title">Intern Portal</h2>
+            <p className="dash-sub">Track and manage your progress.</p>
+          </div>
+
+          <div className="dash-actions">
+            
+
+            <div className="dash-actions-right">
+              <div className="theme-toggle">
+                <button className="toggle-btn active">☀</button>
+                <button className="toggle-btn">🌙</button>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+
+        {/* Banner */}
+        <div className="welcome-banner">
+          <div className="banner-text">
+            <p className="banner-subtitle">Welcome back 👋</p>
+            <h3 className="banner-title">Hi, Intern</h3>
+            <p className="banner-body">
+              Manage your tasks consistently to level up your performance!
+            </p>
+          </div>
+
+          <div className="banner-image">
+            <img
+              src="https://images.pexels.com/photos/1181715/pexels-photo-1181715.jpeg?auto=compress&cs=tinysrgb&w=800"
+              alt="Intern overview"
+            />
+          </div>
+        </div>
+
+        {/* Quick Access */}
+        <div className="section-wrapper">
+          <div className="section-header">
+            <h3 className="section-title">Quick Access</h3>
+            <p className="section-subtitle">
+              All your actions in one spot.
+            </p>
+          </div>
+
+          <div className="dashboard-info">
+            <Link to="/user/tasks" className="info-card">
+              <h3>📚 My Tasks</h3>
+              <p>View assigned tasks & deadlines.</p>
+            </Link>
+
+            <Link to="/user/performance" className="info-card">
+              <h3>📊 My Performance</h3>
+              <p>See your score trends.</p>
+            </Link>
+
+            <Link to="/user/stipends" className="info-card">
+              <h3>💵 My Stipends</h3>
+              <p>Check payouts and eligibility.</p>
+            </Link>
+
+            <Link to="/user/attendance" className="info-card">
+              <h3>🕒 My Attendance</h3>
+              <p>Verify your daily presence.</p>
+            </Link>
+
+            <Link to="/user/feedback" className="info-card">
+              <h3>💬 Give Feedback</h3>
+              <p>Share thoughts with mentors.</p>
+            </Link>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+import React, { useState, useEffect } from "react";
+import { submitFeedback, getBatchDetails } from "../../api/userApi";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import "../../styles/feedback.css";
+
+export default function FeedbackForm() {
+  const [form, setForm] = useState({
+    userId: "",
+    userName: "",
+    batchCode: "",
+    trainerId: "",
+    trainerName: "",
+    feedback: "",
+    rating: 5,
+  });
+
+  const [msg, setMsg] = useState("");
+  const [hoverStar, setHoverStar] = useState(0);
+
+  useEffect(() => {
+    const uid = localStorage.getItem("userId");
+    const email = localStorage.getItem("email");
+    const batch = localStorage.getItem("batchCode");
+
+    setForm((prev) => ({
+      ...prev,
+      userId: uid,
+      userName: email,
+      batchCode: batch,
+    }));
+
+    if (batch) fetchTrainerDetails(batch);
+  }, []);
+
+  const fetchTrainerDetails = async (batchCode) => {
+    try {
+      const res = await getBatchDetails(batchCode);
+
+      setForm((prev) => ({
+        ...prev,
+        trainerId: res.data.trainerId,
+        trainerName: res.data.trainerName,
+      }));
+    } catch (err) {
+      console.log("Trainer fetch error:", err);
+      setMsg("Trainer info unavailable for your batch!");
+    }
+  };
+
+  const ratingLabels = ["Terrible", "Bad", "Okay", "Good", "Excellent"];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMsg("");
+
+    const payload = {
+      userId: Number(form.userId),
+      userName: form.userName,
+      batchCode: Number(form.batchCode),
+      trainerId: Number(form.trainerId),
+      trainerName: form.trainerName,
+      feedback: form.feedback,
+      rating: form.rating,
+    };
+
+    try {
+      await submitFeedback(payload);
+      setMsg("✔ Feedback submitted successfully!");
+      setForm({ ...form, feedback: "", rating: 5 });
+    } catch (e) {
+      setMsg("❌ Failed to submit feedback!");
+    }
+  };
+
+  return (
+    <div className="layout">
+      <Navbar />
+      <Sidebar items={[{ to: "/user/dashboard", label: "Dashboard" }]} />
+
+      <div className="main">
+        <h3>Give Feedback</h3>
+
+        {msg && <div className="info">{msg}</div>}
+
+        <form className="small-form" onSubmit={handleSubmit}>
+          {/* Hidden fields */}
+          <input type="hidden" value={form.trainerId} />
+          <input type="hidden" value={form.trainerName} />
+          <input type="hidden" value={form.batchCode} />
+
+          {/* Read only */}
+          <input value={form.userId} disabled />
+          <input value={form.userName} disabled />
+
+          <div className="rating-container">
+            <label className="rating-label">Rate Trainer:</label>
+            <div className="rating-stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`star ${
+                    star <= (hoverStar || form.rating) ? "filled" : ""
+                  }`}
+                  onClick={() => setForm({ ...form, rating: star })}
+                  onMouseEnter={() => setHoverStar(star)}
+                  onMouseLeave={() => setHoverStar(0)}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <span className="rating-text">
+              {ratingLabels[(hoverStar || form.rating) - 1]}
+            </span>
+          </div>
+
+          <textarea
+            placeholder="Write your feedback here..."
+            value={form.feedback}
+            onChange={(e) => setForm({ ...form, feedback: e.target.value })}
+            required
+          />
+
+          <button className="btn" type="submit">
+            Submit Feedback
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+import api from "./axiosConfig";
+
+// USER REGISTRATION
+export const registerUser = (data) => api.post("/api/user/register", data);
+
+// PUBLIC BATCH LIST — no login required
+export const getAllBatchesPublic = () => api.get("/api/user/batches");
+
+// USER FEATURES
+export const getUserTasks = (id) => api.get(`/api/user/${id}/tasks`);
+export const getUserPerformance = (id) => api.get(`/api/user/${id}/performance`);
+export const getBatchDetails = (id) => api.get(`/api/user/batch/${id}`);
+export const submitFeedback = (data) => api.post("/api/user/feedback", data);
+export const getUserStipends = (id) => api.get(`/api/user/${id}/stipends`);
+export const getUserAttendance = (id) => api.get(`/api/user/${id}/attendance`);
