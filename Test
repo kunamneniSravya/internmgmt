@@ -1,1 +1,12 @@
-
+ select table_name,column_name, constraint_name from information_schema.key_column_usage where referenced_table_name = 'users';
++---------------+--------------+----------------------+
+| TABLE_NAME    | COLUMN_NAME  | CONSTRAINT_NAME      |
++---------------+--------------+----------------------+
+| hiking_events | organizer_id | hiking_events_ibfk_2 |
+| registrations | user_id      | registrations_ibfk_2 |
+| attendance    | user_id      | fk_attend_user       |
+| tasks         | user_id      | fk_task_user         |
+| stipend       | user_id      | fk_stipend_user      |
+| performance   | user_id      | fk_perf_user         |
+| feedback      | user_id      | fk_feedback_user     |
++---------------+--------------+----------------------+
