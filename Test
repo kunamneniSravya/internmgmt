@@ -538,3 +538,23 @@ export const getBatchDetails = (id) => api.get(`/api/user/batch/${id}`);
 export const submitFeedback = (data) => api.post("/api/user/feedback", data);
 export const getUserStipends = (id) => api.get(`/api/user/${id}/stipends`);
 export const getUserAttendance = (id) => api.get(`/api/user/${id}/attendance`);
+const formatDate = (value) => {
+  if (!value) return "N/A";
+
+  try {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+  } catch {}
+
+  return "N/A";
+};
+
+export default formatDate;
