@@ -78,4 +78,20 @@ export default function ViewBatches() {
       </div>
     </div>
   );
-}
+}4
+
+const handleDelete = async (batchName) => {
+  try {
+    await deleteBatchByName(batchName);
+    setMsg("Deleted " + batchName);
+    fetch();
+  } catch (e) {
+    const errorMsg =
+      e?.response?.data?.error ||   // backend returns {error: "..."}
+      e?.response?.data?.message || // backend returns {message: "..."}
+      e?.response?.data || 
+      e.message;
+
+    setMsg(String(errorMsg)); // convert to plain string
+  }
+};
